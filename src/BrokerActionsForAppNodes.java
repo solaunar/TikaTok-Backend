@@ -1,0 +1,175 @@
+import java.io.*;
+import java.math.BigInteger;
+import java.net.Socket;
+import java.util.*;
+
+public class BrokerActionsForAppNodes extends Thread {
+    ObjectOutputStream out = null;
+    ObjectInputStream in = null;
+    Socket connection;
+    Broker broker;
+
+    public BrokerActionsForAppNodes(Socket connection, Broker broker) {
+        this.connection = connection;
+        this.broker = broker;
+        try {
+            out = new ObjectOutputStream(connection.getOutputStream());
+            in = new ObjectInputStream(connection.getInputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void run() {
+        System.out.println("[Broker]: Connection is made with appNode at port: " + connection.getPort());
+        try {
+            while (true) {
+                Object message = in.readObject();
+                if (message instanceof AppNode) {
+                    AppNode user = (AppNode) message;
+                    if (registerConsumer(user)) {
+                        System.out.println("[Broker]: Registered user " + user + " as consumer.");
+                        out.writeObject("[Broker(" + broker.getAddress() + " )]: Registered at this broker as consumer.");
+                        out.flush();
+                        broker.updateInfoTable(user);
+                        continue;
+                    }
+                    out.writeObject("[Broker(" + broker.getAddress() + " )]: User was already registered at this broker as consumer.");
+                    out.flush();
+                } else if (message instanceof VideoFile){
+                    VideoFile requestedVideo = (VideoFile) message;
+                    System.out.println("[Broker]: Got video file from publisher.");
+                    out.writeObject("Received video file request.");
+                    out.flush();
+                    pull(requestedVideo);
+                } else{
+                    String command = (String) message;
+                    if (command.equals("INFO")){
+                        System.out.println("[Broker]: Received request for INFO table...");
+                        out.writeObject("[Broker]: Getting info table for brokers...");
+                        out.flush();
+                        out.writeObject(broker.getInfoTable());
+                        out.flush();
+                    } else if (command.equals("PUBLISHER")){
+                        ArrayList<String> topicsPub = (ArrayList<String>) in.readObject();
+                        AppNode publisher = (AppNode) in.readObject();
+                        broker.updateInfoTable(publisher);
+                    } else if (command.equals("RC")){
+                        System.out.println("[Broker]: Received request for redirection of connection.");
+                        if(((Address)in.readObject()).compare(broker.getAddress())){
+                            out.writeBoolean(false);
+                            out.flush();
+                            out.writeObject("Already at correct Broker.");
+                            continue;
+                        }
+                        //has to redirect
+                        out.writeBoolean(true);
+                        out.flush();
+                        out.writeObject("[Broker]: Redirected successfully to the proper broker.");
+                        out.flush();
+                    } else if(command.equals("EXIT")){
+                        System.out.println("[Broker]: A consumer logged out from broker.");
+                        out.writeObject("Disconnected successfully.");
+                        out.flush();
+                        out.close();
+                        in.close();
+                        connection.close();
+                        break;
+                    } else if (command.equals("LIST_CHANNEL")) {
+                        String channelName = (String) in.readObject();
+                        for (AppNode publisher : broker.getRegisteredPublishers()){
+                            if (publisher.getChannel().getChannelName().equals(channelName.toLowerCase())){
+                                out.writeObject(publisher.getChannel().userHashtagsPerVideo);
+                                out.flush();
+                            }
+                        }
+                    } else if(command.equals("LIST_HASHTAG")){
+                        String hashtag = (String) in.readObject();
+                        HashMap<String, ArrayList<File>> allVideosByHashtag = new HashMap<>();
+                        ArrayList<File> publisherVidsByHashtag;
+                        for (AppNode publisher: broker.getRegisteredPublishers()){
+                            publisherVidsByHashtag = publisher.getChannel().getUserVideosByHashtag().get(hashtag);//getAllHashtagVideos(hashtag, publisher.getAddress().getIp(), publisher.getAddress().getPort());
+                            allVideosByHashtag.put(publisher.getChannel().getChannelName(), publisherVidsByHashtag);
+                        }
+                        out.writeObject(allVideosByHashtag);
+                        out.flush();
+                    }
+                }
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                in.close();
+                out.close();
+                connection.close();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        }
+    }
+
+    public boolean registerConsumer(AppNode user) {
+        for (AppNode registeredConsumer : broker.getRegisteredConsumers()) {
+            if (user.compare(registeredConsumer)) {
+                System.out.println("[Broker]: AppNode user: " + user + " already registered as consumer.");
+                return false;
+            }
+        }
+        broker.getRegisteredConsumers().add(user);
+        return true;
+    }
+
+    public void pull(VideoFile videoFile){
+        int publisherServer = 0;
+        String publisherIP ="";
+        Socket brokerSocket;
+        ObjectOutputStream brokerSocketOut;
+        ObjectInputStream brokerSocketIn;
+        /**ITERATE HASHMAP NOT ARRAYLIST**/
+        for (AppNode user: broker.getRegisteredPublishers()){
+            ArrayList<File> allVideosPublished = user.getChannel().getAllVideosPublished();
+            for (File video : allVideosPublished){
+                if (video.equals(videoFile.getFile())){
+                    publisherServer = user.getAddress().getPort();
+                    publisherIP = user.getAddress().getIp();
+                    break;
+                }
+            }
+        }
+        if(publisherServer==0 || publisherIP.equals("")){
+            System.out.println("This video does not exist.");
+            return;
+        }
+        try {
+            brokerSocket = new Socket(publisherIP, publisherServer);
+            brokerSocketOut = new ObjectOutputStream(brokerSocket.getOutputStream());
+            brokerSocketIn = new ObjectInputStream(brokerSocket.getInputStream());
+            brokerSocketOut.writeObject(videoFile);
+            brokerSocketOut.flush();
+            System.out.println("Request sent to publisher.");
+            ArrayList<VideoFile> chunks = new ArrayList<>();
+            VideoFile chunk;
+            String response;
+            while (true){
+                response = (String) brokerSocketIn.readObject();
+                System.out.println(">Publisher: "+response);
+                if (response.equals("NO MORE CHUNKS")){
+                    out.writeObject("NO MORE CHUNKS");
+                    out.flush();
+                    break;
+                }
+                chunk = (VideoFile) brokerSocketIn.readObject();
+                chunks.add(chunk);
+                brokerSocketOut.writeObject("RECEIVED");
+                out.writeObject(chunk);
+                out.flush();
+                response = (String) in.readObject();
+                if (response.equals("RECEIVED")) continue;
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+}
