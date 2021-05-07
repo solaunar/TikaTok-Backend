@@ -96,7 +96,7 @@ public class ZookeeperActionsForBrokers extends Thread {
                 for (String topic : publisherTopics) {
                     topicsHashed.add(publisher.hashTopic(topic, hashingIDAssociatedWithBrokers));
                 }
-                System.out.println(topicsHashed);
+                //System.out.println(topicsHashed);
                 for (Address brokerAdd : hashingIDAssociatedWithBrokers.keySet()) {
                     ArrayList<String> topicAssociated = topicsAssociatedWithBrokers.get(brokerAdd);
                     for (int i = 0; i < topicsHashed.size(); i++) {
@@ -114,9 +114,9 @@ public class ZookeeperActionsForBrokers extends Thread {
         System.out.println(zookeeper.getInfoTable());
         out.writeObject(zookeeper.getInfoTable());
         out.flush();
-        out.writeObject("[Zookeeper]: Sent updated info table.");
+        out.writeObject("[Zookeeper]: Sent updated info table." );
         out.flush();
-        System.out.println("[Zookeeper]: Sent updated InfoTable to broker.");
+        System.out.println("[Zookeeper]: Sent updated InfoTable to broker."+ broker);
     }
 
     public boolean checkPublisherExistence(AppNode publisher){

@@ -43,21 +43,35 @@ public class AppNodeActionsForConsumers extends Thread {
                 int option = appNode.getAppNodeInput().nextInt();
                 String input = "";
                 if (option == TOPIC_SEARCH) {
+                    out.writeObject("INFO");
+                    out.flush();
+                    System.out.println(in.readObject());
+                    appNode.setInfoTable((InfoTable) in.readObject());
+                    System.out.println(appNode.getInfoTable());
                     System.out.println("Please type the topic (channel or hashtag) you want to look up...");
                     System.out.println("If you want to look up a hashtag, please add '#' in front of the word.");
                     while (input.isBlank()) {
                         input = appNode.getAppNodeInput().nextLine();
                     }
-                    System.out.println("[Consumer]: Searching for requested topic in the info table.");
                     Address brokerAddress = find(input.toLowerCase());
-                    while (brokerAddress == null) {
-                        System.out.println("Topic does not exist. Please type in another topic or type 'EXIT0' to continue using the app.");
-                        input = appNode.getAppNodeInput().nextLine();
-                        if (input.toUpperCase().equals("EXIT0"))
-                            break;
-                        brokerAddress = find(input.toLowerCase());
+                    if (!input.equals(appNode.getChannel().getChannelName())) {
+                        System.out.println("[Consumer]: Searching for requested topic in the info table.");
+                        while (brokerAddress == null) {
+                            System.out.println("Topic does not exist. Please type in another topic or type 'EXIT0' to continue using the app.");
+                            input = appNode.getAppNodeInput().nextLine();
+                            if (input.equals(appNode.getChannel().getChannelName())) {
+                                System.out.println("You can't request your own videos.");
+                                continue;
+                            }
+                            if (input.equalsIgnoreCase("EXIT0"))
+                                break;
+                            brokerAddress = find(input.toLowerCase());
+                        }
+                    } else{
+                        System.out.println("You can't request your own videos.");
+                        continue;
                     }
-                    if (input.toUpperCase().equals("EXIT0")) {
+                    if (input.equalsIgnoreCase("EXIT0")) {
                         continue;
                     }
                     System.out.println("[AppNode]: Connecting you to the proper broker.");
@@ -91,6 +105,8 @@ public class AppNodeActionsForConsumers extends Thread {
                         out.flush();
                         out.writeObject(input);
                         out.flush();
+                        out.writeObject(appNode);
+                        out.flush();
                         videoList = printHashtagVideoList((HashMap<String, ArrayList<File>>) in.readObject());
                     } else {
                         out.writeObject("LIST_CHANNEL");
@@ -98,6 +114,10 @@ public class AppNodeActionsForConsumers extends Thread {
                         out.writeObject(input);
                         out.flush();
                         videoList = printChannelVideoList((HashMap<File, ArrayList<String>>) in.readObject());
+                    }
+                    if(videoList.isEmpty()){
+                        System.out.println("Hashtag existed but you are the only one that has posted a video with that tag.");
+                        continue;
                     }
                     System.out.println("Please choose one of the videos in the list.");
                     String videoChosen = appNode.getAppNodeInput().nextLine();
@@ -116,6 +136,9 @@ public class AppNodeActionsForConsumers extends Thread {
                     }
                     */
                     out.writeObject(getVideo(videoList, videoChosen.toLowerCase()));
+                    out.flush();
+
+                    out.writeObject(appNode);
                     out.flush();
 
                     System.out.println("[Broker]: " + in.readObject());
@@ -138,21 +161,9 @@ public class AppNodeActionsForConsumers extends Thread {
                     int i = 0;
                     for (VideoFile chunk : chunks) {
                         i++;
-                        //System.out.println(chunk.getData());
-                        //FileOutputStream foschunk = new FileOutputStream(videoPath+videoChosen.toLowerCase()+"chunk"+i+".mp4");
                         fos.write(chunk.getData());
-                        //foschunk.write(chunk.getData());
-                        //foschunk.close();
                     }
                     fos.close();
-                    /*System.out.println("Do you want to play the video NOW?" +
-                            "1. Yes.\n" +
-                            "2. No.");
-                    option = appNode.getAppNodeInput().nextInt();
-                    Process process;
-                    if (option == 1) {
-                        process = Runtime.getRuntime().exec("cd " + videoPath + videoChosen.toLowerCase() + ".mp4");
-                    }*/
                     continue;
                 }
                 else if (option == SUBSCRIBE_TOPIC) {
@@ -176,6 +187,23 @@ public class AppNodeActionsForConsumers extends Thread {
                         System.out.println(appNode.getChannel().getAllVideosPublished());
                         System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
                         System.out.println(appNode.getChannel().getUserVideosByHashtag());
+                    } else{
+                        appNode.setPublisher(true);
+                        uploadVideoRequest();
+                        System.out.println("[Publisher]: Notifying brokers of new content.");
+                        out.writeObject(appNode);
+                        out.flush();
+                        System.out.println(appNode.getChannel().getAllHashtagsPublished());
+                        System.out.println(appNode.getChannel().getAllVideosPublished());
+                        System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
+                        System.out.println(appNode.getChannel().getUserVideosByHashtag());
+                        Thread appNodeServer = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                appNode.openAppNodeServer();
+                            }
+                        });
+                        appNodeServer.start();
                     }
                 }
                 else if (option == DELETE_VIDEO){
@@ -193,10 +221,27 @@ public class AppNodeActionsForConsumers extends Thread {
                         continue;
                     }
                 }
+                else if (option == EXIT){
+                    out.writeObject("EXIT");
+                    out.flush();
+                    System.out.println("[Broker]: " + in.readObject());
+                    in.close();
+                    out.close();
+                    appNodeRequestSocket.close();
+                    break;
+                }
             }
             //System.out.println(appNode.getInfoTable());
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                in.close();
+                out.close();
+                appNodeRequestSocket.close();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
         }
     }
 
@@ -262,7 +307,6 @@ public class AppNodeActionsForConsumers extends Thread {
     }
 
     public void connection(Socket appNodeRequestSocket) throws IOException, ClassNotFoundException {
-        ;
         out = new ObjectOutputStream(appNodeRequestSocket.getOutputStream());
         in = new ObjectInputStream(appNodeRequestSocket.getInputStream());
         System.out.println("[AppNode]: Notifying brokers of existence.");

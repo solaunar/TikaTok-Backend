@@ -42,13 +42,15 @@ public class BrokerActionsForAppNodes extends Thread {
                     System.out.println("[Broker]: Got video file from publisher.");
                     out.writeObject("Received video file request.");
                     out.flush();
-                    pull(requestedVideo);
+                    AppNode consumer = (AppNode) in.readObject();
+                    pull(requestedVideo, consumer);
                 } else{
                     String command = (String) message;
                     if (command.equals("INFO")){
                         System.out.println("[Broker]: Received request for INFO table...");
                         out.writeObject("[Broker]: Getting info table for brokers...");
                         out.flush();
+                        broker.updateInfoTable(null);
                         out.writeObject(broker.getInfoTable());
                         out.flush();
                     } else if (command.equals("PUBLISHER")){
@@ -88,9 +90,11 @@ public class BrokerActionsForAppNodes extends Thread {
                         }
                     } else if(command.equals("LIST_HASHTAG")){
                         String hashtag = (String) in.readObject();
+                        AppNode userConsumer = (AppNode) in.readObject();
                         HashMap<String, ArrayList<File>> allVideosByHashtag = new HashMap<>();
                         ArrayList<File> publisherVidsByHashtag;
                         for (AppNode publisher: broker.getRegisteredPublishers()){
+                            if (userConsumer.compare(publisher)) continue;
                             publisherVidsByHashtag = publisher.getChannel().getUserVideosByHashtag().get(hashtag);//getAllHashtagVideos(hashtag, publisher.getAddress().getIp(), publisher.getAddress().getPort());
                             allVideosByHashtag.put(publisher.getChannel().getChannelName(), publisherVidsByHashtag);
                         }
@@ -123,7 +127,7 @@ public class BrokerActionsForAppNodes extends Thread {
         return true;
     }
 
-    public void pull(VideoFile videoFile){
+    public void pull(VideoFile videoFile, AppNode consumer){
         int publisherServer = 0;
         String publisherIP ="";
         Socket brokerSocket;
@@ -131,6 +135,7 @@ public class BrokerActionsForAppNodes extends Thread {
         ObjectInputStream brokerSocketIn;
         /**ITERATE HASHMAP NOT ARRAYLIST**/
         for (AppNode user: broker.getRegisteredPublishers()){
+            if (consumer.compare(user)) continue;
             ArrayList<File> allVideosPublished = user.getChannel().getAllVideosPublished();
             for (File video : allVideosPublished){
                 if (video.equals(videoFile.getFile())){

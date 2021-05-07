@@ -33,6 +33,10 @@ public class AppNode extends Node {
         return isPublisher;
     }
 
+    public void setPublisher(boolean publisher) {
+        isPublisher = publisher;
+    }
+
     public Channel getChannel() {
         return channel;
     }
@@ -55,6 +59,10 @@ public class AppNode extends Node {
 
     public void uploadVideo(String directory, ArrayList<String> hashtags) {
         File videoFile = new File(directory);
+        if (getChannel().getAllVideosPublished().contains(videoFile)){
+            System.out.println("Video has been uploaded. Please chose upload again if you'd like to upload a NEW video.");
+            return;
+        }
         HashMap<String, ArrayList<File>> userVideosByHashtag = getChannel().getUserVideosByHashtag();
         for (String hashtag : hashtags) {
             if (!getChannel().getAllHashtagsPublished().contains(hashtag)) {
@@ -69,8 +77,7 @@ public class AppNode extends Node {
                 userVideosByHashtag.put(hashtag, videosByHashtag);
             }
         }
-        if(!getChannel().getAllVideosPublished().contains(videoFile))
-            getChannel().getAllVideosPublished().add(videoFile);
+        getChannel().getAllVideosPublished().add(videoFile);
         getChannel().getUserHashtagsPerVideo().put(videoFile, hashtags);
     }
 
@@ -154,7 +161,7 @@ public class AppNode extends Node {
     public void init() {
         System.out.println("[AppNode]: created.");
         System.out.println("[AppNode]: Please enter a username: ");
-        String channelName = appNodeInput.nextLine();
+        String channelName = appNodeInput.nextLine().toLowerCase();
         setChannel(new Channel(channelName));
         System.out.println("Do you have any content to upload?");
         System.out.println("Please respond by typing 1 or 2:\n" +
