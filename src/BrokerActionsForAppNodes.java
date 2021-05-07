@@ -57,10 +57,12 @@ public class BrokerActionsForAppNodes extends Thread {
                         broker.updateInfoTable(publisher);
                     } else if (command.equals("RC")){
                         System.out.println("[Broker]: Received request for redirection of connection.");
-                        if(((Address)in.readObject()).compare(broker.getAddress())){
+                        Address rcAdress = (Address)in.readObject();
+                        if(rcAdress.compare(broker.getAddress())){
                             out.writeBoolean(false);
                             out.flush();
                             out.writeObject("Already at correct Broker.");
+                            out.flush();
                             continue;
                         }
                         //has to redirect
@@ -80,7 +82,7 @@ public class BrokerActionsForAppNodes extends Thread {
                         String channelName = (String) in.readObject();
                         for (AppNode publisher : broker.getRegisteredPublishers()){
                             if (publisher.getChannel().getChannelName().equals(channelName.toLowerCase())){
-                                out.writeObject(publisher.getChannel().userHashtagsPerVideo);
+                                out.writeObject(publisher.getChannel().getUserHashtagsPerVideo());
                                 out.flush();
                             }
                         }

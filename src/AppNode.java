@@ -49,22 +49,63 @@ public class AppNode extends Node {
         this.infoTable = infoTable;
     }
 
-    public boolean compare(AppNode appNode){
+    public boolean compare(AppNode appNode) {
         return this.getAddress().compare(appNode.getAddress());
     }
 
-    public void readDirectory(){
+    public void uploadVideo(String directory, ArrayList<String> hashtags) {
+        File videoFile = new File(directory);
+        HashMap<String, ArrayList<File>> userVideosByHashtag = getChannel().getUserVideosByHashtag();
+        for (String hashtag : hashtags) {
+            if (!getChannel().getAllHashtagsPublished().contains(hashtag)) {
+                getChannel().getAllHashtagsPublished().add(hashtag);
+            }
+            if (userVideosByHashtag.containsKey(hashtag)) {
+                ArrayList<File> videosByHashtag = userVideosByHashtag.get(hashtag);
+                videosByHashtag.add(videoFile);
+            } else {
+                ArrayList<File> videosByHashtag = new ArrayList<>();
+                videosByHashtag.add(videoFile);
+                userVideosByHashtag.put(hashtag, videosByHashtag);
+            }
+        }
+        if(!getChannel().getAllVideosPublished().contains(videoFile))
+            getChannel().getAllVideosPublished().add(videoFile);
+        getChannel().getUserHashtagsPerVideo().put(videoFile, hashtags);
+    }
+
+    public void deleteVideo(File video) {
+        getChannel().getAllVideosPublished().remove(video);
+        ArrayList<String> hashtagsAssociated = getChannel().getUserHashtagsPerVideo().get(video);
+        getChannel().getUserHashtagsPerVideo().remove(video);
+        HashMap<String, ArrayList<File>> userVideosByHashtag = getChannel().getUserVideosByHashtag();
+        for (String hashtag :hashtagsAssociated){
+            if(userVideosByHashtag.containsKey(hashtag)) {
+                System.out.println(hashtag + " " + userVideosByHashtag.get(hashtag));
+                ArrayList<File> hashtagsFile = userVideosByHashtag.get(hashtag);
+                hashtagsFile.remove(video);
+                if (hashtagsFile.isEmpty()){
+                    userVideosByHashtag.remove(hashtag);
+                }
+            }
+        }
+        getChannel().getAllHashtagsPublished().clear();
+        getChannel().getAllHashtagsPublished().addAll(userVideosByHashtag.keySet());
+    }
+
+    public void readDirectory() {
         File[] videoFiles = new File(userDirectory + "mp4").listFiles();
         File[] hashtags = new File(userDirectory + "hashtags").listFiles();
         System.out.println(videoFiles);
         System.out.println(hashtags);
         setChannelMaps(videoFiles, hashtags);
     }
+
     public void setChannelMaps(File[] videoFiles, File[] hashtags) {
         HashMap<File, ArrayList<String>> userHashtagsPerVideo = new HashMap<>();
         ArrayList<String> allHashtagsPublished = new ArrayList<>();
         ArrayList<File> allVideosPublished = new ArrayList<>(Arrays.asList(videoFiles));
-        for (int i = 0; i < videoFiles.length; i++) {
+        for (int i = videoFiles.length -1; i >= 0; i--) {
             File video = videoFiles[i];
             File hashtag = hashtags[i];
             ArrayList<String> hashtagList = readHashtagsFile(hashtag, allHashtagsPublished);
@@ -89,6 +130,7 @@ public class AppNode extends Node {
         channel.setUserVideosByHashtag(userVideosByHashtag);
         channel.setAllVideosPublished(allVideosPublished);
     }//reads hashtags from txt file and returns them in list of String
+
     ArrayList<String> readHashtagsFile(File hashtag, ArrayList<String> allHashtagsPublished) {
         ArrayList<String> hashtagList = new ArrayList<>();
         Scanner hashtagReader = null;
@@ -96,7 +138,7 @@ public class AppNode extends Node {
             hashtagReader = new Scanner(hashtag);
             while (hashtagReader.hasNextLine()) {
                 String hashtagRead = hashtagReader.nextLine();
-                hashtagList.add(hashtagRead);
+                hashtagList.add(hashtagRead.toLowerCase());
                 //add to total published hashtags list
                 if (!allHashtagsPublished.contains(hashtagRead)) {
                     allHashtagsPublished.add(hashtagRead.toLowerCase());
@@ -109,7 +151,7 @@ public class AppNode extends Node {
         return hashtagList;
     }
 
-    public void init(){
+    public void init() {
         System.out.println("[AppNode]: created.");
         System.out.println("[AppNode]: Please enter a username: ");
         String channelName = appNodeInput.nextLine();
@@ -119,7 +161,7 @@ public class AppNode extends Node {
                 "1. Yes.\n" +
                 "2. No.");
         int response = appNodeInput.nextInt();
-        if (response == 1){
+        if (response == 1) {
             isPublisher = true;
             System.out.println("Please specify the directory that contains the mp4 and hashtags folders for your existent videos.");
             while (this.userDirectory.isBlank())
@@ -137,11 +179,11 @@ public class AppNode extends Node {
         appNodeConsumer.start();
     }
 
-    public void openAppNodeServer(){
+    public void openAppNodeServer() {
         try {
             appNodeServerSocket = new ServerSocket(address.getPort(), Node.BACKLOG);
             System.out.println("[Publisher]: " + this + " is ready to accept requests.");
-            while (true){
+            while (true) {
                 connection = appNodeServerSocket.accept();
                 Thread brokerThread = new AppNodeActionsForBrokers(connection, this);
                 brokerThread.start();

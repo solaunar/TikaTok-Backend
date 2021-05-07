@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Channel implements Serializable{
-    String channelName;
-    HashMap<File, ArrayList<String>> userHashtagsPerVideo;
-    HashMap<String, ArrayList<File>> userVideosByHashtag;
-    ArrayList<String> allHashtagsPublished;
-    ArrayList<File> allVideosPublished;
+    private String channelName;
+    private HashMap<File, ArrayList<String>> userHashtagsPerVideo = new HashMap<>();
+    private HashMap<String, ArrayList<File>> userVideosByHashtag = new HashMap<>();
+    private ArrayList<String> allHashtagsPublished = new ArrayList<>();
+    private ArrayList<File> allVideosPublished = new ArrayList<>();
 
     public Channel(String channelName) {
         this.channelName = channelName;

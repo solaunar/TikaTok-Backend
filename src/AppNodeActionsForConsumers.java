@@ -4,20 +4,26 @@ import java.io.*;
 import java.net.Socket;
 import java.util.*;
 
-public class AppNodeActionsForConsumers extends Thread{
+public class AppNodeActionsForConsumers extends Thread {
     private final int TOPIC_SEARCH = 1;
+    private final int SUBSCRIBE_TOPIC = 2;
+    private final int UNSUBSCRIBE_TOPIC = 3;
+    private final int REFRESH_SUBSCRIPTIONS = 4;
+    private final int POST_VIDEO = 5;
+    private final int DELETE_VIDEO = 6;
+    private final int EXIT = 7;
     Socket appNodeRequestSocket = null;
     ObjectOutputStream out;
     ObjectInputStream in;
     AppNode appNode;
 
-    public AppNodeActionsForConsumers(AppNode appNode){
+    public AppNodeActionsForConsumers(AppNode appNode) {
         this.appNode = appNode;
     }
 
     @Override
-    public void run(){
-        try{
+    public void run() {
+        try {
             System.out.println("[Consumer]: Connecting to a random Broker.");
             Random random = new Random();
             int randomBrokerIndex = random.ints(0, Node.BROKER_ADDRESSES.size()).findFirst().getAsInt();
@@ -25,7 +31,7 @@ public class AppNodeActionsForConsumers extends Thread{
             //Address randomBroker = Node.BROKER_ADDRESSES.get(0);
             appNodeRequestSocket = new Socket(randomBroker.getIp(), randomBroker.getPort());
             connection(appNodeRequestSocket);
-            while (true){
+            while (true) {
                 System.out.println("Please select what you'd like to do: ");
                 System.out.println("1. Search for a topic (channel or hashtag) as a [Consumer].");
                 System.out.println("2. Subscribe to a topic (channel or hashtag) as a [Consumer].");
@@ -36,22 +42,22 @@ public class AppNodeActionsForConsumers extends Thread{
                 System.out.println("7. Exit app as a [Consumer].");
                 int option = appNode.getAppNodeInput().nextInt();
                 String input = "";
-                if (TOPIC_SEARCH == 1){
+                if (option == TOPIC_SEARCH) {
                     System.out.println("Please type the topic (channel or hashtag) you want to look up...");
                     System.out.println("If you want to look up a hashtag, please add '#' in front of the word.");
-                    while (input.isBlank()){
+                    while (input.isBlank()) {
                         input = appNode.getAppNodeInput().nextLine();
                     }
                     System.out.println("[Consumer]: Searching for requested topic in the info table.");
                     Address brokerAddress = find(input.toLowerCase());
-                    while (brokerAddress == null){
+                    while (brokerAddress == null) {
                         System.out.println("Topic does not exist. Please type in another topic or type 'EXIT0' to continue using the app.");
                         input = appNode.getAppNodeInput().nextLine();
-                        if(input.toUpperCase().equals("EXIT0"))
+                        if (input.toUpperCase().equals("EXIT0"))
                             break;
                         brokerAddress = find(input.toLowerCase());
                     }
-                    if (input.toUpperCase().equals("EXIT0")){
+                    if (input.toUpperCase().equals("EXIT0")) {
                         continue;
                     }
                     System.out.println("[AppNode]: Connecting you to the proper broker.");
@@ -62,7 +68,7 @@ public class AppNodeActionsForConsumers extends Thread{
                     out.flush();
                     boolean redirect = in.readBoolean();
                     System.out.println("[Broker]: " + in.readObject());
-                    if (redirect){
+                    if (redirect) {
                         out.writeObject("EXIT");
                         out.flush();
                         System.out.println("[Broker]: " + in.readObject());
@@ -80,7 +86,7 @@ public class AppNodeActionsForConsumers extends Thread{
                     }
 
                     ArrayList<File> videoList = null;
-                    if (input.startsWith("#")){
+                    if (input.startsWith("#")) {
                         out.writeObject("LIST_HASHTAG");
                         out.flush();
                         out.writeObject(input);
@@ -95,7 +101,7 @@ public class AppNodeActionsForConsumers extends Thread{
                     }
                     System.out.println("Please choose one of the videos in the list.");
                     String videoChosen = appNode.getAppNodeInput().nextLine();
-                    while (videoChosen.isBlank()){
+                    while (videoChosen.isBlank()) {
                         videoChosen = appNode.getAppNodeInput().nextLine();
                     }
                     /*
@@ -112,9 +118,9 @@ public class AppNodeActionsForConsumers extends Thread{
                     out.writeObject(getVideo(videoList, videoChosen.toLowerCase()));
                     out.flush();
 
-                    System.out.println("[Broker]: "+in.readObject());
+                    System.out.println("[Broker]: " + in.readObject());
                     ArrayList<VideoFile> chunks = new ArrayList<>();
-                    while (true){
+                    while (true) {
                         Object response = in.readObject();
                         if (response.equals("NO MORE CHUNKS")) break;
                         chunks.add((VideoFile) response);
@@ -125,12 +131,12 @@ public class AppNodeActionsForConsumers extends Thread{
 
                     System.out.println("Please type a path to save the videofile.");
                     String videoPath = appNode.getAppNodeInput().nextLine();
-                    while (videoPath.isBlank()){
+                    while (videoPath.isBlank()) {
                         videoPath = appNode.getAppNodeInput().nextLine();
                     }
-                    FileOutputStream fos = new FileOutputStream(videoPath+videoChosen.toLowerCase()+".mp4");
-                    int i =0;
-                    for (VideoFile chunk: chunks){
+                    FileOutputStream fos = new FileOutputStream(videoPath + videoChosen.toLowerCase() + ".mp4");
+                    int i = 0;
+                    for (VideoFile chunk : chunks) {
                         i++;
                         //System.out.println(chunk.getData());
                         //FileOutputStream foschunk = new FileOutputStream(videoPath+videoChosen.toLowerCase()+"chunk"+i+".mp4");
@@ -149,6 +155,44 @@ public class AppNodeActionsForConsumers extends Thread{
                     }*/
                     continue;
                 }
+                else if (option == SUBSCRIBE_TOPIC) {
+                    System.out.println("[Consumer]: Subscribing to requested topic");
+                    continue;
+                }
+                else if (option == UNSUBSCRIBE_TOPIC) {
+                    System.out.println("[Consumer]: Unsubscribing from topic.");
+                }
+                else if (option == REFRESH_SUBSCRIPTIONS) {
+                    System.out.println("[Consumer]: Got available video list of subscriptions.");
+                }
+                else if (option == POST_VIDEO) {
+                    if (appNode.isPublisher()) {
+                        System.out.println("[Publisher]: User already registered as publisher.");
+                        uploadVideoRequest();
+                        System.out.println("[Publisher]: Notifying brokers of new content.");
+                        out.writeObject(appNode);
+                        out.flush();
+                        System.out.println(appNode.getChannel().getAllHashtagsPublished());
+                        System.out.println(appNode.getChannel().getAllVideosPublished());
+                        System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
+                        System.out.println(appNode.getChannel().getUserVideosByHashtag());
+                    }
+                }
+                else if (option == DELETE_VIDEO){
+                    if (appNode.isPublisher()){
+                        selectPublishedVideos();
+                        System.out.println("[Publisher]: Notifying brokers of new content.");
+                        out.writeObject(appNode);
+                        out.flush();
+                        System.out.println(appNode.getChannel().getAllHashtagsPublished());
+                        System.out.println(appNode.getChannel().getAllVideosPublished());
+                        System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
+                        System.out.println(appNode.getChannel().getUserVideosByHashtag());
+                    } else{
+                        System.out.println("[Publisher]: User is not registered as publisher, which means he doesn't have videos to delete.");
+                        continue;
+                    }
+                }
             }
             //System.out.println(appNode.getInfoTable());
         } catch (IOException | ClassNotFoundException e) {
@@ -156,11 +200,36 @@ public class AppNodeActionsForConsumers extends Thread{
         }
     }
 
+    public void selectPublishedVideos(){
+        System.out.println("LIST OF PUBLISHED VIDEOS.");
+        HashMap<File, ArrayList<String>> userHashtagsPerVideo = appNode.getChannel().getUserHashtagsPerVideo();
+        int index = userHashtagsPerVideo.size()-1;
+        for(File videoPublished : userHashtagsPerVideo.keySet()){
+            String videoTitle = videoPublished.getPath();
+            videoTitle = videoTitle.substring(videoTitle.lastIndexOf('\\') + 1, videoTitle.indexOf(".mp4"));
+            System.out.println(index + ". " + videoTitle);
+            System.out.println("\tHashtags of video: " + userHashtagsPerVideo.get(videoPublished));
+            System.out.println("----------------------------------");
+            index--;
+        }
+        System.out.println("Please type in the number of the video you want to delete.");
+        int choice = -1;
+        choice = appNode.getAppNodeInput().nextInt();
+        while (choice==-1){
+            System.out.println("This is not a number off the list.");
+            choice = appNode.getAppNodeInput().nextInt();
+        }
+        for(int i = 0; i<appNode.getChannel().getAllVideosPublished().size(); i++)
+            System.out.println(i + " " + appNode.getChannel().getAllVideosPublished().get(i).getPath());
+        System.out.println(appNode.getChannel().getAllVideosPublished().get(choice));
+        File toBeDeleted = appNode.getChannel().getAllVideosPublished().get(choice);
+        appNode.deleteVideo(toBeDeleted);
+    }
     public ArrayList<File> printChannelVideoList(HashMap<File, ArrayList<String>> userHashtagsPerVideo) {
         System.out.println("LIST OF VIDEOS OF REQUESTED CHANNEL.");
         ArrayList<File> videoList = new ArrayList<>();
         Iterator it = userHashtagsPerVideo.entrySet().iterator();
-        while (it.hasNext()){
+        while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
             File videoFile = (File) pair.getKey();
             videoList.add(videoFile);
@@ -173,7 +242,27 @@ public class AppNodeActionsForConsumers extends Thread{
         return videoList;
     }
 
-    public void connection(Socket appNodeRequestSocket) throws IOException, ClassNotFoundException {;
+    public void uploadVideoRequest() {
+        System.out.println("Please type in the directory of the file you want to post.\n" +
+                "Format: C:/.../video.mp4");
+        String directory = "";
+        directory = appNode.getAppNodeInput().nextLine();
+        while (directory.isBlank()) {
+            directory = appNode.getAppNodeInput().nextLine();
+        }
+        System.out.println("Please type in the hashtags you want to associate with this video.\n" +
+                "Format: #hashtag1,#hashtag2,#hashtag3,... (all hashtags split by commas)");
+        String hashtagsInline = "";
+        hashtagsInline = appNode.getAppNodeInput().nextLine();
+        while (hashtagsInline.isBlank()) {
+            hashtagsInline = appNode.getAppNodeInput().nextLine();
+        }
+        ArrayList<String> hashtags = new ArrayList<>(Arrays.asList(hashtagsInline.toLowerCase().replace(" ", "").split(",")));
+        appNode.uploadVideo(directory, hashtags);
+    }
+
+    public void connection(Socket appNodeRequestSocket) throws IOException, ClassNotFoundException {
+        ;
         out = new ObjectOutputStream(appNodeRequestSocket.getOutputStream());
         in = new ObjectInputStream(appNodeRequestSocket.getInputStream());
         System.out.println("[AppNode]: Notifying brokers of existence.");
@@ -186,41 +275,44 @@ public class AppNodeActionsForConsumers extends Thread{
         System.out.println(in.readObject());
         appNode.setInfoTable((InfoTable) in.readObject());
     }
-    public Address find(String topic){
+
+    public Address find(String topic) {
         HashMap<Address, ArrayList<String>> topicsAssociatedWithBrokers = appNode.getInfoTable().getTopicsAssociatedWithBrokers();
         Iterator it = topicsAssociatedWithBrokers.entrySet().iterator();
-        while (it.hasNext()){
+        while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
             ArrayList<String> brokerTopics = (ArrayList<String>) pair.getValue();
-            for (String topicRegistered : brokerTopics){
-                if (topicRegistered.equals(topic)){
+            for (String topicRegistered : brokerTopics) {
+                if (topicRegistered.equals(topic)) {
                     return (Address) pair.getKey();
                 }
             }
         }
         return null;
     }
-    public ArrayList<File> printHashtagVideoList(HashMap<String, ArrayList<File>> hashtagVideoList){
+
+    public ArrayList<File> printHashtagVideoList(HashMap<String, ArrayList<File>> hashtagVideoList) {
         System.out.println("LIST OF VIDEOS OF REQUESTED HASHTAG.");
         ArrayList<File> files = new ArrayList<>();
         Iterator it = hashtagVideoList.entrySet().iterator();
-        while (it.hasNext()){
+        while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
             String channelName = (String) pair.getKey();
-            System.out.println("Channel: "+ channelName+ " posted: ");
+            System.out.println("Channel: " + channelName + " posted: ");
             ArrayList<File> publisherVideoByHashtag = (ArrayList<File>) pair.getValue();
-            for (File videoFile : publisherVideoByHashtag){
+            for (File videoFile : publisherVideoByHashtag) {
                 files.add(videoFile);
                 String videoTitle = videoFile.getPath();
                 videoTitle = videoTitle.substring(videoTitle.lastIndexOf('\\') + 1, videoTitle.indexOf(".mp4"));
-                System.out.println("\t"+videoTitle.toUpperCase());
+                System.out.println("\t" + videoTitle.toUpperCase());
             }
             System.out.println("----------------------------------");
         }
         return files;
     }
+
     public VideoFile getVideo(ArrayList<File> videoList, String userVideoRequest) {
-        for (File video: videoList){
+        for (File video : videoList) {
             if (video.getPath().contains(userVideoRequest)) {
                 VideoFile videoFile = new VideoFile(video);
                 return videoFile;
