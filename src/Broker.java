@@ -24,7 +24,7 @@ public class Broker extends Node{
     ServerSocket brokerServerSocket = null;
     private ArrayList<String> topicsAssociated = new ArrayList<>();
     private InfoTable infoTable;
-    private ArrayList<AppNode> registeredConsumers = new ArrayList<>();
+    private HashMap<AppNode, ArrayList<String>> registeredConsumers = new HashMap<>();
     private ArrayList<AppNode> registeredPublishers = new ArrayList<>();
     private HashMap<AppNode, ArrayList<String>> availablePublishers;
 
@@ -45,7 +45,7 @@ public class Broker extends Node{
         return topicsAssociated;
     }
 
-    public ArrayList<AppNode> getRegisteredConsumers() {
+    public HashMap<AppNode, ArrayList<String>> getRegisteredConsumers() {
         return registeredConsumers;
     }
 

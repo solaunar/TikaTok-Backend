@@ -14,7 +14,9 @@ public class AppNode extends Node {
     transient ServerSocket appNodeServerSocket = null;
     transient Socket connection = null;
     private boolean isPublisher = false;
+    private boolean isSubscribed = false;
     private InfoTable infoTable;
+    private ArrayList<String> subscribedTopics = new ArrayList<>();
 
     public AppNode(Address address) {
         this.address = address;
@@ -35,6 +37,14 @@ public class AppNode extends Node {
 
     public void setPublisher(boolean publisher) {
         isPublisher = publisher;
+    }
+
+    public boolean isSubscribed() {
+        return isSubscribed;
+    }
+
+    public void setSubscribed(boolean subscribed) {
+        isSubscribed = subscribed;
     }
 
     public Channel getChannel() {

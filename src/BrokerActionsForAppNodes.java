@@ -28,14 +28,9 @@ public class BrokerActionsForAppNodes extends Thread {
                 Object message = in.readObject();
                 if (message instanceof AppNode) {
                     AppNode user = (AppNode) message;
-                    if (registerConsumer(user)) {
-                        System.out.println("[Broker]: Registered user " + user + " as consumer.");
-                        out.writeObject("[Broker(" + broker.getAddress() + " )]: Registered at this broker as consumer.");
-                        out.flush();
-                        broker.updateInfoTable(user);
-                        continue;
-                    }
-                    out.writeObject("[Broker(" + broker.getAddress() + " )]: User was already registered at this broker as consumer.");
+                    broker.updateInfoTable(user);
+                    System.out.println("[Broker]: AppNode data retrieved.");
+                    out.writeObject("[Broker(" + broker.getAddress() + " )]: AppNode data retrieved.");
                     out.flush();
                 } else if (message instanceof VideoFile){
                     VideoFile requestedVideo = (VideoFile) message;
@@ -100,6 +95,11 @@ public class BrokerActionsForAppNodes extends Thread {
                         }
                         out.writeObject(allVideosByHashtag);
                         out.flush();
+                    } else if(command.equals("REG")){
+                        AppNode userRegister = (AppNode) in.readObject();
+                        String topic = (String) in.readObject();
+                        registerConsumer(userRegister, topic);
+                        System.out.println(broker.getRegisteredConsumers());
                     }
                 }
             }
@@ -116,14 +116,22 @@ public class BrokerActionsForAppNodes extends Thread {
         }
     }
 
-    public boolean registerConsumer(AppNode user) {
-        for (AppNode registeredConsumer : broker.getRegisteredConsumers()) {
+    public boolean registerConsumer(AppNode user, String topic) {
+        ArrayList<String> topicsRegistered = new ArrayList<>();
+        for (AppNode registeredConsumer : broker.getRegisteredConsumers().keySet()) {
             if (user.compare(registeredConsumer)) {
-                System.out.println("[Broker]: AppNode user: " + user + " already registered as consumer.");
+                topicsRegistered = broker.getRegisteredConsumers().get(registeredConsumer);
+                if (topicsRegistered.contains(topic)){
+                    System.out.println("[Broker]: AppNode user: " + user + " already registered as consumer for topic: " + topic + ".");
+                }
+                else{
+                    topicsRegistered.add(topic);
+                }
                 return false;
             }
         }
-        broker.getRegisteredConsumers().add(user);
+        topicsRegistered.add(topic);
+        broker.getRegisteredConsumers().put(user, topicsRegistered);
         return true;
     }
 
