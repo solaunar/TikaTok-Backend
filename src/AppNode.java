@@ -16,7 +16,7 @@ public class AppNode extends Node {
     private boolean isPublisher = false;
     private boolean isSubscribed = false;
     private InfoTable infoTable;
-    private ArrayList<String> subscribedTopics = new ArrayList<>();
+    private HashMap<String, ArrayList<File>> subscribedTopics = new HashMap<>();
 
     public AppNode(Address address) {
         this.address = address;
@@ -53,6 +53,10 @@ public class AppNode extends Node {
 
     public void setChannel(Channel channel) {
         this.channel = channel;
+    }
+
+    public HashMap<String, ArrayList<File>> getSubscribedTopics() {
+        return subscribedTopics;
     }
 
     public InfoTable getInfoTable() {
@@ -108,6 +112,22 @@ public class AppNode extends Node {
         }
         getChannel().getAllHashtagsPublished().clear();
         getChannel().getAllHashtagsPublished().addAll(userVideosByHashtag.keySet());
+        System.out.println(getChannel().getUserVideosByHashtag());
+    }
+
+    public boolean updateOnSubscriptions(){
+        boolean shouldUpdate = false;
+        for (String topic: subscribedTopics.keySet()){
+            ArrayList<File> availableVideos = new ArrayList<>(infoTable.getAllVideosByTopic().get(topic));
+            if (getChannel().getAllHashtagsPublished().contains(topic)){
+                availableVideos.removeAll(getChannel().getUserVideosByHashtag().get(topic));
+            }
+            if(!subscribedTopics.get(topic).equals(availableVideos)){
+                shouldUpdate = true;
+                subscribedTopics.replace(topic, availableVideos);
+            }
+        }
+        return shouldUpdate;
     }
 
     public void readDirectory() {

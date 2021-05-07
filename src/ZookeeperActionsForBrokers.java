@@ -1,5 +1,7 @@
+import com.uwyn.jhighlight.fastutil.Hash;
 import org.apache.commons.math3.analysis.function.Add;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -32,7 +34,7 @@ public class ZookeeperActionsForBrokers extends Thread {
         System.out.println("[Zookeeper]: Connection is made with broker at port: " + connection.getPort());
         try {
             int requestCode = in.readInt();
-            System.out.println(requestCode);
+            //System.out.println(requestCode);
             if (requestCode == GET_INFOTABLE){
                 System.out.println("[Zookeeper]: Received request for InfoTable.");
                 out.writeObject(zookeeper.getInfoTable());
@@ -61,6 +63,7 @@ public class ZookeeperActionsForBrokers extends Thread {
     public void updateInfoTable(AppNode appNode, Address broker, BigInteger brokerID, boolean updateID) throws IOException {
         HashMap<Address, BigInteger> hashingIDAssociatedWithBrokers = zookeeper.getInfoTable().getHashingIDAssociatedWithBrokers();
         HashMap<Address, ArrayList<String>> topicsAssociatedWithBrokers = zookeeper.getInfoTable().getTopicsAssociatedWithBrokers();
+        HashMap<String, ArrayList<File>> allVideosByTopic = zookeeper.getInfoTable().getAllVideosByTopic();
         //update - add brokerID if the parameter is not zero and if the boolean updateID is true
         if (brokerID.compareTo(BigInteger.valueOf(0))!=0 && updateID){
             boolean existsHashingID = checkBrokerExistence(broker, null, hashingIDAssociatedWithBrokers);
@@ -89,9 +92,11 @@ public class ZookeeperActionsForBrokers extends Thread {
                     zookeeper.getInfoTable().getAvailablePublishers().replace(appNode, appNode.getChannel().getAllHashtagsPublished());
                 }
             }
+            ArrayList<String> allAvailableTopics = new ArrayList<>();
             for (AppNode publisher : zookeeper.getInfoTable().getAvailablePublishers().keySet()) {
                 ArrayList<String> publisherTopics = zookeeper.getInfoTable().getAvailablePublishers().get(publisher);
                 publisherTopics.add(publisher.getChannel().getChannelName());
+                allAvailableTopics.addAll(publisherTopics);
                 ArrayList<Address> topicsHashed = new ArrayList<>();
                 for (String topic : publisherTopics) {
                     topicsHashed.add(publisher.hashTopic(topic, hashingIDAssociatedWithBrokers));
@@ -109,9 +114,33 @@ public class ZookeeperActionsForBrokers extends Thread {
                     topicsAssociatedWithBrokers.replace(brokerAdd, topicAssociated);
                 }
             }
+            for (String availableTopic: allAvailableTopics){
+                System.out.println("MPHKA STH FOR");
+                ArrayList<File> filesAssociated = new ArrayList<>();
+                for (AppNode availablePublisher : zookeeper.getInfoTable().getAvailablePublishers().keySet()){
+                    if (availableTopic.equals(availablePublisher.getChannel().getChannelName())){
+                        if(allVideosByTopic.containsKey(availableTopic)){
+                            allVideosByTopic.replace(availableTopic, availablePublisher.getChannel().getAllVideosPublished());
+                        } else {
+                            allVideosByTopic.put(availableTopic, availablePublisher.getChannel().getAllVideosPublished());
+                        }
+                        break;
+                    }
+                    if (availableTopic.startsWith("#"))
+                        filesAssociated.addAll(availablePublisher.getChannel().getUserVideosByHashtag().get(availableTopic));
+                }
+                if(availableTopic.startsWith("#")){
+                    if (allVideosByTopic.containsKey(availableTopic)){
+                        allVideosByTopic.replace(availableTopic, filesAssociated);
+                    } else {
+                        allVideosByTopic.put(availableTopic, filesAssociated);
+                    }
+                }
+            }
         }
+        System.out.println(allVideosByTopic);
         System.out.println("[Zookeeper]: Updated InfoTable.");
-        System.out.println(zookeeper.getInfoTable());
+        //System.out.println(zookeeper.getInfoTable());
         out.writeObject(zookeeper.getInfoTable());
         out.flush();
         out.writeObject("[Zookeeper]: Sent updated info table." );

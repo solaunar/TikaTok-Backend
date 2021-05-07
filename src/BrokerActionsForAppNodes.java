@@ -100,6 +100,14 @@ public class BrokerActionsForAppNodes extends Thread {
                         String topic = (String) in.readObject();
                         registerConsumer(userRegister, topic);
                         System.out.println(broker.getRegisteredConsumers());
+                    } else if(command.equals("LIST_TOPIC")){
+                        String topic = (String) in.readObject();
+                        AppNode consumer = (AppNode) in.readObject();
+                        ArrayList<File> videosToReturn = new ArrayList<>(broker.getInfoTable().getAllVideosByTopic().get(topic));
+                        System.out.println(videosToReturn);
+                        System.out.println(videosToReturn);
+                        out.writeObject(videosToReturn.removeAll(consumer.getChannel().getUserVideosByHashtag().get(topic)));
+                        out.flush();
                     }
                 }
             }
