@@ -127,7 +127,8 @@ public class ZookeeperActionsForBrokers extends Thread {
                         break;
                     }
                     if (availableTopic.startsWith("#"))
-                        filesAssociated.addAll(availablePublisher.getChannel().getUserVideosByHashtag().get(availableTopic));
+                        if(availablePublisher.getChannel().getUserVideosByHashtag().containsKey(availableTopic))
+                            filesAssociated.addAll(availablePublisher.getChannel().getUserVideosByHashtag().get(availableTopic));
                 }
                 if(availableTopic.startsWith("#")){
                     if (allVideosByTopic.containsKey(availableTopic)){
