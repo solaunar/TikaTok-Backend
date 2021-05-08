@@ -18,5 +18,5 @@ public class Node /*extends Thread*/ implements Serializable {
     static protected final Address ZOOKEEPER_ADDRESS = new Address("192.168.88.186", 10000);
 
     //backlog
-    static protected final int BACKLOG = 150;
+    static protected final int BACKLOG = 250;
 }
