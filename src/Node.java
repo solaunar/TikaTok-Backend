@@ -4,12 +4,14 @@ import java.util.Arrays;
 
 public class Node /*extends Thread*/ implements Serializable {
     //Broker Addresses (ip, port)
-    static protected final ArrayList<Address> BROKER_ADDRESSES = new ArrayList<>(Arrays.asList( new Address("192.168.88.189", 5000),
-            new Address("192.168.88.188", 5250),
-            new Address("192.168.88.185", 5500)));
+    static protected final ArrayList<Address> BROKER_ADDRESSES = new ArrayList<>(Arrays.asList(
+            new Address("192.168.88.186", 5000),
+            new Address("192.168.88.186", 5250),
+            new Address("192.168.88.186", 5500)));
 
     //AppNode Addresses (ip, port)
-    static protected final ArrayList<Address> APPNODE_ADDRESSES = new ArrayList<>(Arrays.asList(new Address("192.168.88.185", 7000),
+    static protected final ArrayList<Address> APPNODE_ADDRESSES = new ArrayList<>(Arrays.asList(
+            new Address("192.168.88.185", 7000),
             new Address("192.168.88.186", 7250),
             new Address("192.168.88.189", 7500),
             new Address("192.168.88.188", 7750)));
