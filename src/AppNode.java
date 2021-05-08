@@ -262,7 +262,4 @@ public class AppNode extends Node {
         return ((ArrayList<Address>) hashIDAssociatedWithBrokers.keySet()).get(random.ints(0, hashIDAssociatedWithBrokers.size()).findFirst().getAsInt());
     }
 
-    public static void main(String[] args) {
-        new AppNode(Node.APPNODE_ADDRESSES.get(0)).init();
-    }
 }
