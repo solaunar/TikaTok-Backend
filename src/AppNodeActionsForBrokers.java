@@ -36,7 +36,7 @@ public class AppNodeActionsForBrokers extends Thread {
                 ArrayList<VideoFile> chunks = chunkVideo(video);
                 for (VideoFile chunk : chunks) {
                     push(chunk);
-                    sleep(10000);
+                    //sleep(10000);
                     String response = (String) in.readObject();
                     System.out.println("Sent chunk #" + chunk.getChunkID());
                     if (response.equals("RECEIVED")) continue;
@@ -45,7 +45,7 @@ public class AppNodeActionsForBrokers extends Thread {
                 out.flush();
             }
             this.interrupt();
-        } catch (IOException | ClassNotFoundException | InterruptedException e) {
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
