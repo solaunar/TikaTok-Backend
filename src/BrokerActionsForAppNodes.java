@@ -67,6 +67,7 @@ public class BrokerActionsForAppNodes extends Thread {
                         out.flush();
                         out.writeObject("[Broker]: Redirected successfully to the proper broker.");
                         out.flush();
+                        this.interrupt();
                     } else if(command.equals("EXIT")){
                         System.out.println("[Broker]: A consumer logged out from broker.");
                         out.writeObject("Disconnected successfully.");
