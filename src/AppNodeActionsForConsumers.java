@@ -298,7 +298,8 @@ public class AppNodeActionsForConsumers extends Thread {
                     out.writeObject("EXIT");
                     out.flush();
                     System.out.println("[Broker]: " + in.readObject());
-                    updateSub.interrupt();
+                    if(updateSub!=null)
+                        updateSub.interrupt();
                     in.close();
                     out.close();
                     appNodeRequestSocket.close();
