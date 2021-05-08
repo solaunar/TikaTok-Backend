@@ -418,7 +418,7 @@ public class AppNodeActionsForConsumers extends Thread {
 
     public VideoFile getVideo(ArrayList<File> videoList, String userVideoRequest) {
         for (File video : videoList) {
-            if (video.getPath().contains(userVideoRequest)) {
+            if (video.getPath().toLowerCase().contains(userVideoRequest)) {
                 VideoFile videoFile = new VideoFile(video);
                 return videoFile;
             }
