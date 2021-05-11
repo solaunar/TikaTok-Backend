@@ -89,9 +89,10 @@ public class AppNode extends Node implements Serializable{
             return;
         }
         HashMap<String, ArrayList<File>> userVideosByHashtag = getChannel().getUserVideosByHashtag();
+        ArrayList<String> allHashtagsPublished = getChannel().getAllHashtagsPublished();
         for (String hashtag : hashtags) {
-            if (!getChannel().getAllHashtagsPublished().contains(hashtag)) {
-                getChannel().getAllHashtagsPublished().add(hashtag);
+            if (!allHashtagsPublished.contains(hashtag)) {
+                allHashtagsPublished.add(hashtag);
             }
             if (userVideosByHashtag.containsKey(hashtag)) {
                 ArrayList<File> videosByHashtag = userVideosByHashtag.get(hashtag);
@@ -102,8 +103,14 @@ public class AppNode extends Node implements Serializable{
                 userVideosByHashtag.put(hashtag, videosByHashtag);
             }
         }
-        getChannel().getAllVideosPublished().add(videoFile);
-        getChannel().getUserHashtagsPerVideo().put(videoFile, hashtags);
+        ArrayList<File> allVideosPublished = getChannel().getAllVideosPublished();
+        allVideosPublished.add(videoFile);
+        HashMap<File, ArrayList<String>> userHashtagsPerVideo = getChannel().getUserHashtagsPerVideo();
+        userHashtagsPerVideo.put(videoFile, hashtags);
+        channel.setUserHashtagsPerVideo(userHashtagsPerVideo);
+        channel.setAllHashtagsPublished(allHashtagsPublished);
+        channel.setUserVideosByHashtag(userVideosByHashtag);
+        channel.setAllVideosPublished(allVideosPublished);
     }
 
     public void deleteVideo(File video) {
