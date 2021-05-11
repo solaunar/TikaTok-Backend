@@ -150,16 +150,16 @@ public class AppNode extends Node {
     }
 
     public void setChannelMaps(File[] videoFiles, File[] hashtags) {
-        HashMap<File, ArrayList<String>> userHashtagsPerVideo = new HashMap<>();
-        ArrayList<String> allHashtagsPublished = new ArrayList<>();
-        ArrayList<File> allVideosPublished = new ArrayList<>(Arrays.asList(videoFiles));
+        HashMap<File, ArrayList<String>> userHashtagsPerVideo = channel.getUserHashtagsPerVideo();
+        ArrayList<String> allHashtagsPublished = channel.getAllHashtagsPublished();
+        ArrayList<File> allVideosPublished = channel.getAllVideosPublished();
         for (int i = videoFiles.length -1; i >= 0; i--) {
             File video = videoFiles[i];
             File hashtag = hashtags[i];
             ArrayList<String> hashtagList = readHashtagsFile(hashtag, allHashtagsPublished);
             userHashtagsPerVideo.put(video, hashtagList);
         }
-        HashMap<String, ArrayList<File>> userVideosByHashtag = new HashMap<>();
+        HashMap<String, ArrayList<File>> userVideosByHashtag = channel.getUserVideosByHashtag();
         for (String hashtagPublished : allHashtagsPublished) {
             ArrayList<File> videosForThisHashtag = new ArrayList<>();
             for (Map.Entry videoElement : userHashtagsPerVideo.entrySet()) {
