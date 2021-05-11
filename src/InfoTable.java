@@ -14,7 +14,7 @@ public class InfoTable implements Serializable {
     public InfoTable() {
     }
 
-    public HashMap<Address, ArrayList<String>> getTopicsAssociatedWithBrokers() {
+    public synchronized HashMap<Address, ArrayList<String>> getTopicsAssociatedWithBrokers() {
         return topicsAssociatedWithBrokers;
     }
 
@@ -22,7 +22,7 @@ public class InfoTable implements Serializable {
         this.topicsAssociatedWithBrokers = topicsAssociatedWithBrokers;
     }
 
-    public HashMap<Address, BigInteger> getHashingIDAssociatedWithBrokers() {
+    public synchronized HashMap<Address, BigInteger> getHashingIDAssociatedWithBrokers() {
         return hashingIDAssociatedWithBrokers;
     }
 
@@ -30,7 +30,7 @@ public class InfoTable implements Serializable {
         this.hashingIDAssociatedWithBrokers = hashingIDAssociatedWithBrokers;
     }
 
-    public HashMap<AppNode, ArrayList<String>> getAvailablePublishers() {
+    public synchronized HashMap<AppNode, ArrayList<String>> getAvailablePublishers() {
         return availablePublishers;
     }
 
@@ -38,7 +38,7 @@ public class InfoTable implements Serializable {
         this.availablePublishers = availablePublishers;
     }
 
-    public HashMap<String, ArrayList<File>> getAllVideosByTopic() {
+    public synchronized HashMap<String, ArrayList<File>> getAllVideosByTopic() {
         return allVideosByTopic;
     }
 

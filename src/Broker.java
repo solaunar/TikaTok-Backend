@@ -32,7 +32,7 @@ public class Broker extends Node{
         System.out.println("[Broker]: Broker initialized. " + address.toString());
     }
 
-    public Address getAddress() {
+    public synchronized Address getAddress() {
         return address;
     }
 
@@ -44,15 +44,15 @@ public class Broker extends Node{
         return topicsAssociated;
     }
 
-    public HashMap<AppNode, ArrayList<String>> getRegisteredConsumers() {
+    public synchronized HashMap<AppNode, ArrayList<String>> getRegisteredConsumers() {
         return registeredConsumers;
     }
 
-    public ArrayList<AppNode> getRegisteredPublishers() {
+    public synchronized ArrayList<AppNode> getRegisteredPublishers() {
         return registeredPublishers;
     }
 
-    public InfoTable getInfoTable() {
+    public synchronized InfoTable getInfoTable() {
         return infoTable;
     }
 
@@ -64,7 +64,7 @@ public class Broker extends Node{
         this.availablePublishers = availablePublishers;
     }
 
-    public void setRegisteredPublishers() {
+    public synchronized void setRegisteredPublishers() {
         boolean nextPub = false;
         for(AppNode publisher : availablePublishers.keySet()){
             for (String topicPublisher : availablePublishers.get(publisher)){
