@@ -9,14 +9,14 @@ import java.util.*;
 public class AppNode extends Node implements Serializable{
     private String userDirectory = "";
     private Address address;
-    transient Scanner appNodeInput = null;
+    Scanner appNodeInput = null;
     private volatile Channel channel;
-    transient ServerSocket appNodeServerSocket = null;
-    transient Socket connection = null;
+    ServerSocket appNodeServerSocket = null;
+    Socket connection = null;
     private boolean isPublisher = false;
     private boolean isSubscribed = false;
     private InfoTable infoTable;
-    private transient HashMap<String, ArrayList<File>> subscribedTopics = new HashMap<>();
+    private HashMap<String, ArrayList<File>> subscribedTopics = new HashMap<>();
 
     public AppNode(Address address) {
         this.address = address;

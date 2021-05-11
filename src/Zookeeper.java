@@ -7,7 +7,7 @@ import java.util.HashMap;
 public class Zookeeper extends Node{
     Address zookeeperAddress = Node.ZOOKEEPER_ADDRESS;
     ServerSocket zookeeperServerSocket = null;
-    transient InfoTable infoTable;
+    InfoTable infoTable;
 
     public Zookeeper(){
         infoTable = new InfoTable();
