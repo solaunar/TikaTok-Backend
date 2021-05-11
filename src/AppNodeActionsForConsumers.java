@@ -407,7 +407,12 @@ public class AppNodeActionsForConsumers extends Thread {
         System.out.println("The video I am adding has these hashtags: " + hashtags);
         appNode.uploadVideo(directory, hashtags);
         System.out.println("[Publisher]: Notifying brokers of new content.");
-        out.writeObject(new AppNode(appNode));
+        AppNode temp = new AppNode(appNode);
+        Channel tempChannel = new Channel(appNode.getChannel());
+        temp.setChannel(tempChannel);
+        //out.writeObject(appNode);
+        //out.flush();
+        out.writeObject(temp);
         out.flush();
         System.out.println(in.readObject());
         System.out.println("[Consumer]: Sending info table request to Broker.");

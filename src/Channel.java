@@ -14,6 +14,14 @@ public class Channel implements Serializable{
         this.channelName = channelName;
     }
 
+    public Channel(Channel channel){
+        this.channelName = channel.channelName;
+        this.userHashtagsPerVideo = channel.getUserHashtagsPerVideo();
+        this.allHashtagsPublished = channel.allHashtagsPublished;
+        this.userVideosByHashtag = channel.userVideosByHashtag;
+        this.allVideosPublished = channel.allVideosPublished;
+    }
+
     public synchronized String getChannelName() {
         return channelName;
     }

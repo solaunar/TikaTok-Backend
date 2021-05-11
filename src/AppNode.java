@@ -6,7 +6,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-public class AppNode extends Node {
+public class AppNode extends Node implements Serializable{
     private String userDirectory = "";
     private Address address;
     transient Scanner appNodeInput = null;
