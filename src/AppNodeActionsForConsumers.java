@@ -14,7 +14,7 @@ public class AppNodeActionsForConsumers extends Thread {
     Socket appNodeRequestSocket = null;
     ObjectOutputStream out;
     ObjectInputStream in;
-    volatile AppNode appNode;
+    transient volatile AppNode appNode;
     boolean threadUpdateSub = false;
     public AppNodeActionsForConsumers(AppNode appNode) {
         System.out.println("My original self." + appNode);

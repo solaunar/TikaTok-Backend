@@ -10,13 +10,13 @@ public class AppNode extends Node implements Serializable{
     private String userDirectory = "";
     private Address address;
     transient Scanner appNodeInput = null;
-    private volatile Channel channel;
+    private transient volatile Channel channel;
     transient ServerSocket appNodeServerSocket = null;
     transient Socket connection = null;
-    private boolean isPublisher = false;
-    private boolean isSubscribed = false;
+    private transient boolean isPublisher = false;
+    private transient boolean isSubscribed = false;
     private InfoTable infoTable;
-    private HashMap<String, ArrayList<File>> subscribedTopics = new HashMap<>();
+    private transient HashMap<String, ArrayList<File>> subscribedTopics = new HashMap<>();
 
     public AppNode(Address address) {
         this.address = address;
