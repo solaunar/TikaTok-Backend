@@ -47,7 +47,7 @@ public class AppNode extends Node {
         isSubscribed = subscribed;
     }
 
-    public Channel getChannel() {
+    public synchronized Channel getChannel() {
         return channel;
     }
 
@@ -55,7 +55,7 @@ public class AppNode extends Node {
         this.channel = channel;
     }
 
-    public HashMap<String, ArrayList<File>> getSubscribedTopics() {
+    public synchronized HashMap<String, ArrayList<File>> getSubscribedTopics() {
         return subscribedTopics;
     }
 
