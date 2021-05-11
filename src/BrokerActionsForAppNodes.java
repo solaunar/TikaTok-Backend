@@ -27,9 +27,11 @@ public class BrokerActionsForAppNodes extends Thread {
             while (true) {
                 Object message = in.readObject();
                 if (message instanceof AppNode) {
+                    System.out.println(((AppNode) message).getChannel().getAllHashtagsPublished());
+                    System.out.println("First print of self " + (AppNode) message);
                     AppNode user = (AppNode) message;
                     broker.updateInfoTable(user);
-                    System.out.println(user.getChannel().getUserHashtagsPerVideo());
+                    System.out.println("Second print of me " + user);
                     System.out.println("[Broker]: AppNode: " + user.getChannel().getChannelName() + " data retrieved.");
                     out.writeObject("[Broker(" + broker.getAddress() + " )]: AppNode data retrieved.");
                     out.flush();
