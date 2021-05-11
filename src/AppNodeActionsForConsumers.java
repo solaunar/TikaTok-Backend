@@ -17,7 +17,9 @@ public class AppNodeActionsForConsumers extends Thread {
     volatile AppNode appNode;
     boolean threadUpdateSub = false;
     public AppNodeActionsForConsumers(AppNode appNode) {
-        this.appNode = appNode;
+        System.out.println("My original self." + appNode);
+        this.appNode = new AppNode(appNode);
+        System.out.println("My copy self: " + this.appNode);
     }
 
     @Override

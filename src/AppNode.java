@@ -32,6 +32,7 @@ public class AppNode extends Node implements Serializable{
         this.isPublisher = appNode.isPublisher;
         this.infoTable = appNode.infoTable;
         this.subscribedTopics = appNode.subscribedTopics;
+        this.appNodeServerSocket = appNode.appNodeServerSocket;
     }
 
     public Address getAddress() {
