@@ -60,7 +60,7 @@ public class ZookeeperActionsForBrokers extends Thread {
         }
     }
 
-    public void updateInfoTable(AppNode appNode, Address broker, BigInteger brokerID, boolean updateID) throws IOException {
+    public synchronized void updateInfoTable(AppNode appNode, Address broker, BigInteger brokerID, boolean updateID) throws IOException {
         HashMap<Address, BigInteger> hashingIDAssociatedWithBrokers = zookeeper.getInfoTable().getHashingIDAssociatedWithBrokers();
         HashMap<Address, ArrayList<String>> topicsAssociatedWithBrokers = zookeeper.getInfoTable().getTopicsAssociatedWithBrokers();
         HashMap<String, ArrayList<File>> allVideosByTopic = zookeeper.getInfoTable().getAllVideosByTopic();

@@ -35,7 +35,7 @@ public class Zookeeper extends Node{
         }
     }
 
-    public InfoTable getInfoTable() {
+    public synchronized InfoTable getInfoTable() {
         return infoTable;
     }
 
