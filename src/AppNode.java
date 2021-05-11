@@ -10,7 +10,7 @@ public class AppNode extends Node {
     private String userDirectory = "";
     private Address address;
     transient Scanner appNodeInput = null;
-    private Channel channel;
+    private volatile Channel channel;
     transient ServerSocket appNodeServerSocket = null;
     transient Socket connection = null;
     private boolean isPublisher = false;
