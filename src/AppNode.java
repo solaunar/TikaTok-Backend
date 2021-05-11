@@ -158,6 +158,7 @@ public class AppNode extends Node implements Serializable{
             File hashtag = hashtags[i];
             ArrayList<String> hashtagList = readHashtagsFile(hashtag, allHashtagsPublished);
             userHashtagsPerVideo.put(video, hashtagList);
+            allVideosPublished.add(video);
         }
         HashMap<String, ArrayList<File>> userVideosByHashtag = channel.getUserVideosByHashtag();
         for (String hashtagPublished : allHashtagsPublished) {
