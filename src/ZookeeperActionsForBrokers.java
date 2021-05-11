@@ -91,10 +91,13 @@ public class ZookeeperActionsForBrokers extends Thread {
                 } else {
                     zookeeper.getInfoTable().getAvailablePublishers().replace(appNode, appNode.getChannel().getAllHashtagsPublished());
                 }
+                System.out.println(zookeeper.getInfoTable().getAvailablePublishers());
             }
             ArrayList<String> allAvailableTopics = new ArrayList<>();
             for (AppNode publisher : zookeeper.getInfoTable().getAvailablePublishers().keySet()) {
+                System.out.println(publisher.getChannel().getChannelName());
                 ArrayList<String> publisherTopics = zookeeper.getInfoTable().getAvailablePublishers().get(publisher);
+                System.out.println(publisherTopics);
                 publisherTopics.add(publisher.getChannel().getChannelName());
                 allAvailableTopics.addAll(publisherTopics);
                 ArrayList<Address> topicsHashed = new ArrayList<>();
@@ -113,9 +116,12 @@ public class ZookeeperActionsForBrokers extends Thread {
                     }
                     topicsAssociatedWithBrokers.replace(brokerAdd, topicAssociated);
                 }
+                System.out.println("--------------------------------------------------------");
             }
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$   OTHER FOR   $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
             for (String availableTopic: allAvailableTopics){
                 //System.out.println("MPHKA STH FOR");
+                System.out.println(availableTopic);
                 ArrayList<File> filesAssociated = new ArrayList<>();
                 for (AppNode availablePublisher : zookeeper.getInfoTable().getAvailablePublishers().keySet()){
                     if (availableTopic.equals(availablePublisher.getChannel().getChannelName())){
@@ -124,6 +130,7 @@ public class ZookeeperActionsForBrokers extends Thread {
                         } else {
                             allVideosByTopic.put(availableTopic, availablePublisher.getChannel().getAllVideosPublished());
                         }
+                        System.out.println("Got in here cause the available topic was a channelName.");
                         break;
                     }
                     if (availableTopic.startsWith("#"))
@@ -136,10 +143,11 @@ public class ZookeeperActionsForBrokers extends Thread {
                     } else {
                         allVideosByTopic.put(availableTopic, filesAssociated);
                     }
+                    System.out.println("Added a hashtag: " + allVideosByTopic);
                 }
             }
         }
-        System.out.println(allVideosByTopic);
+        //System.out.println(allVideosByTopic);
         System.out.println("[Zookeeper]: Updated InfoTable.");
         System.out.println(zookeeper.getInfoTable());
         out.writeObject(zookeeper.getInfoTable());

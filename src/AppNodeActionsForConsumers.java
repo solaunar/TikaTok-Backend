@@ -320,8 +320,7 @@ public class AppNodeActionsForConsumers extends Thread {
                         System.out.println("[Consumer]: Sending info table request to Broker.");
                         out.writeObject("INFO");
                         out.flush();
-                        in.readObject();
-                        //System.out.println();
+                        System.out.println(in.readObject());
                         appNode.setInfoTable((InfoTable) in.readObject());
                         /*System.out.println(appNode.getChannel().getAllHashtagsPublished());
                         System.out.println(appNode.getChannel().getAllVideosPublished());
