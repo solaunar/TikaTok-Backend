@@ -88,6 +88,7 @@ public class ZookeeperActionsForBrokers extends Thread {
             if (appNode != null && appNode.isPublisher()) {
                 System.out.println("7777777777777777777777777777777777777777777777777777777");
                 System.out.println("Yo check out my vids: " + appNode.getChannel().getUserHashtagsPerVideo());
+                System.out.println("Here are my hashtags: " + appNode.getChannel().getAllHashtagsPublished());
                 if (!checkPublisherExistence(appNode) && zookeeper.getInfoTable().getAvailablePublishers() != null) {
                     zookeeper.getInfoTable().getAvailablePublishers().put(appNode, appNode.getChannel().getAllHashtagsPublished());
                 } else {

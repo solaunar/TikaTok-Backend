@@ -261,6 +261,7 @@ public class AppNodeActionsForConsumers extends Thread {
                         uploadVideoRequest();
                         System.out.println(appNode.getChannel().getAllVideosPublished());
                         System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
+                        System.out.println(appNode.getChannel().getAllHashtagsPublished());
                         System.out.println("[Publisher]: Notifying brokers of new content.");
                         out.writeObject(appNode);
                         out.flush();
@@ -283,6 +284,7 @@ public class AppNodeActionsForConsumers extends Thread {
                         uploadVideoRequest();
                         System.out.println(appNode.getChannel().getAllVideosPublished());
                         System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
+                        System.out.println(appNode.getChannel().getAllHashtagsPublished());
                         System.out.println("[Publisher]: Notifying brokers of new content.");
                         out.writeObject(appNode);
                         out.flush();
@@ -313,6 +315,7 @@ public class AppNodeActionsForConsumers extends Thread {
                         selectPublishedVideos();
                         System.out.println(appNode.getChannel().getAllVideosPublished());
                         System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
+                        System.out.println(appNode.getChannel().getAllHashtagsPublished());
                         System.out.println("[Publisher]: Notifying brokers of new content.");
                         out.writeObject(appNode);
                         out.flush();
@@ -420,6 +423,7 @@ public class AppNodeActionsForConsumers extends Thread {
             hashtagsInline = appNode.getAppNodeInput().nextLine();
         }
         ArrayList<String> hashtags = new ArrayList<>(Arrays.asList(hashtagsInline.toLowerCase().replace(" ", "").split(",")));
+        System.out.println("The video I am adding has these hashtags: " + hashtags);
         appNode.uploadVideo(directory, hashtags);
     }
 
