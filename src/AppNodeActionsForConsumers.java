@@ -262,16 +262,6 @@ public class AppNodeActionsForConsumers extends Thread {
                         System.out.println(appNode.getChannel().getAllVideosPublished());
                         System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
                         System.out.println(appNode.getChannel().getAllHashtagsPublished());
-                        System.out.println("[Publisher]: Notifying brokers of new content.");
-                        out.writeObject(appNode);
-                        out.flush();
-                        System.out.println(in.readObject());
-                        System.out.println("[Consumer]: Sending info table request to Broker.");
-                        out.writeObject("INFO");
-                        out.flush();
-                        in.readObject();
-                        //System.out.println();
-                        appNode.setInfoTable((InfoTable) in.readObject());
                         /*System.out.println(appNode.getChannel().getAllHashtagsPublished());
                         System.out.println(appNode.getChannel().getAllVideosPublished());
                         System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
@@ -285,16 +275,7 @@ public class AppNodeActionsForConsumers extends Thread {
                         System.out.println(appNode.getChannel().getAllVideosPublished());
                         System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
                         System.out.println(appNode.getChannel().getAllHashtagsPublished());
-                        System.out.println("[Publisher]: Notifying brokers of new content.");
-                        out.writeObject(appNode);
-                        out.flush();
-                        System.out.println(in.readObject());
-                        System.out.println("[Consumer]: Sending info table request to Broker.");
-                        out.writeObject("INFO");
-                        out.flush();
-                        in.readObject();
-                        //System.out.println();
-                        appNode.setInfoTable((InfoTable) in.readObject());
+
                         /*System.out.println(appNode.getChannel().getAllHashtagsPublished());
                         System.out.println(appNode.getChannel().getAllVideosPublished());
                         System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
@@ -407,7 +388,7 @@ public class AppNodeActionsForConsumers extends Thread {
         System.out.println("----------------------------------");
     }
 
-    public void uploadVideoRequest() {
+    public void uploadVideoRequest() throws IOException, ClassNotFoundException {
         System.out.println("Please type in the directory of the file you want to post.\n" +
                 "Format: C:/.../video.mp4");
         String directory = "";
@@ -425,6 +406,16 @@ public class AppNodeActionsForConsumers extends Thread {
         ArrayList<String> hashtags = new ArrayList<>(Arrays.asList(hashtagsInline.toLowerCase().replace(" ", "").split(",")));
         System.out.println("The video I am adding has these hashtags: " + hashtags);
         appNode.uploadVideo(directory, hashtags);
+        System.out.println("[Publisher]: Notifying brokers of new content.");
+        out.writeObject(appNode);
+        out.flush();
+        System.out.println(in.readObject());
+        System.out.println("[Consumer]: Sending info table request to Broker.");
+        out.writeObject("INFO");
+        out.flush();
+        in.readObject();
+        //System.out.println();
+        appNode.setInfoTable((InfoTable) in.readObject());
     }
 
     public void connection(Socket appNodeRequestSocket) throws IOException, ClassNotFoundException {
