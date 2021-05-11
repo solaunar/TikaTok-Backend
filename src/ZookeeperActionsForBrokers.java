@@ -86,12 +86,16 @@ public class ZookeeperActionsForBrokers extends Thread {
             out.writeObject("[Zookeeper]: Updating info table...");
             out.flush();
             if (appNode != null && appNode.isPublisher()) {
+                System.out.println("7777777777777777777777777777777777777777777777777777777");
+                System.out.println("Yo check out my vids: " + appNode.getChannel().getUserHashtagsPerVideo());
                 if (!checkPublisherExistence(appNode) && zookeeper.getInfoTable().getAvailablePublishers() != null) {
                     zookeeper.getInfoTable().getAvailablePublishers().put(appNode, appNode.getChannel().getAllHashtagsPublished());
                 } else {
+                    System.out.println("got in here to replace myself");
                     zookeeper.getInfoTable().getAvailablePublishers().replace(appNode, appNode.getChannel().getAllHashtagsPublished());
                 }
                 System.out.println(zookeeper.getInfoTable().getAvailablePublishers());
+                System.out.println("7777777777777777777777777777777777777777777777777777777");
             }
             ArrayList<String> allAvailableTopics = new ArrayList<>();
             for (AppNode publisher : zookeeper.getInfoTable().getAvailablePublishers().keySet()) {
@@ -159,8 +163,10 @@ public class ZookeeperActionsForBrokers extends Thread {
 
     public boolean checkPublisherExistence(AppNode publisher){
         for (AppNode availablePublisher : zookeeper.getInfoTable().getAvailablePublishers().keySet()){
-            if (availablePublisher.compare(publisher))
+            if (availablePublisher.compare(publisher)){
+                System.out.println("Found me in the available publishers.");
                 return true;
+            }
         }
         return false;
     }
