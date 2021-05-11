@@ -159,7 +159,7 @@ public class Broker extends Node{
             }
             setAvailablePublishers(infoTable.getAvailablePublishers());
             setRegisteredPublishers();
-            System.out.println(infoTable);
+            //System.out.println(infoTable);
             System.out.println(brokerSocketIn.readObject());
             brokerSocketIn.close();
             brokerSocketOut.close();

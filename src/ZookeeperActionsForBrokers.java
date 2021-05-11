@@ -115,7 +115,7 @@ public class ZookeeperActionsForBrokers extends Thread {
                 }
             }
             for (String availableTopic: allAvailableTopics){
-                System.out.println("MPHKA STH FOR");
+                //System.out.println("MPHKA STH FOR");
                 ArrayList<File> filesAssociated = new ArrayList<>();
                 for (AppNode availablePublisher : zookeeper.getInfoTable().getAvailablePublishers().keySet()){
                     if (availableTopic.equals(availablePublisher.getChannel().getChannelName())){
@@ -141,7 +141,7 @@ public class ZookeeperActionsForBrokers extends Thread {
         }
         System.out.println(allVideosByTopic);
         System.out.println("[Zookeeper]: Updated InfoTable.");
-        //System.out.println(zookeeper.getInfoTable());
+        System.out.println(zookeeper.getInfoTable());
         out.writeObject(zookeeper.getInfoTable());
         out.flush();
         out.writeObject("[Zookeeper]: Sent updated info table." );

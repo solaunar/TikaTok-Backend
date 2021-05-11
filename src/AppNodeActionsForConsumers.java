@@ -27,6 +27,7 @@ public class AppNodeActionsForConsumers extends Thread {
             Random random = new Random();
             int randomBrokerIndex = random.ints(0, Node.BROKER_ADDRESSES.size()).findFirst().getAsInt();
             Address randomBroker = Node.BROKER_ADDRESSES.get(randomBrokerIndex);
+            //Address randomBroker = Node.BROKER_ADDRESSES.get(0);
             appNodeRequestSocket = new Socket(randomBroker.getIp(), randomBroker.getPort());
             connection(appNodeRequestSocket);
             Thread updateSub = null;
