@@ -23,6 +23,17 @@ public class AppNode extends Node {
         appNodeInput = new Scanner(System.in);
     }
 
+    public AppNode(AppNode appNode){
+        this.userDirectory = appNode.userDirectory;
+        this.address = appNode.address;
+        this.appNodeInput = appNode.appNodeInput;
+        this.channel = appNode.channel;
+        this.isSubscribed = appNode.isSubscribed;
+        this.isPublisher = appNode.isPublisher;
+        this.infoTable = appNode.infoTable;
+        this.subscribedTopics = appNode.subscribedTopics;
+    }
+
     public Address getAddress() {
         return address;
     }
