@@ -407,7 +407,7 @@ public class AppNodeActionsForConsumers extends Thread {
         System.out.println("The video I am adding has these hashtags: " + hashtags);
         appNode.uploadVideo(directory, hashtags);
         System.out.println("[Publisher]: Notifying brokers of new content.");
-        out.writeObject(appNode);
+        out.writeObject(new AppNode(appNode));
         out.flush();
         System.out.println(in.readObject());
         System.out.println("[Consumer]: Sending info table request to Broker.");
@@ -422,7 +422,7 @@ public class AppNodeActionsForConsumers extends Thread {
         out = new ObjectOutputStream(appNodeRequestSocket.getOutputStream());
         in = new ObjectInputStream(appNodeRequestSocket.getInputStream());
         System.out.println("[AppNode]: Notifying brokers of existence.");
-        out.writeObject(new AppNode(appNode));
+        out.writeObject(appNode);
         out.flush();
         System.out.println(in.readObject());
         System.out.println("[Consumer]: Sending info table request to Broker.");
