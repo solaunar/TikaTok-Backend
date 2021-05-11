@@ -14,7 +14,7 @@ public class AppNodeActionsForConsumers extends Thread {
     Socket appNodeRequestSocket = null;
     ObjectOutputStream out;
     ObjectInputStream in;
-    AppNode appNode;
+    volatile AppNode appNode;
     boolean threadUpdateSub = false;
     public AppNodeActionsForConsumers(AppNode appNode) {
         this.appNode = appNode;
