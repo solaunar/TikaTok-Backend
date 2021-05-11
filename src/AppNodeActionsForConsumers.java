@@ -259,6 +259,13 @@ public class AppNodeActionsForConsumers extends Thread {
                         System.out.println("[Publisher]: Notifying brokers of new content.");
                         out.writeObject(appNode);
                         out.flush();
+                        System.out.println(in.readObject());
+                        System.out.println("[Consumer]: Sending info table request to Broker.");
+                        out.writeObject("INFO");
+                        out.flush();
+                        in.readObject();
+                        //System.out.println();
+                        appNode.setInfoTable((InfoTable) in.readObject());
                         /*System.out.println(appNode.getChannel().getAllHashtagsPublished());
                         System.out.println(appNode.getChannel().getAllVideosPublished());
                         System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
@@ -269,6 +276,13 @@ public class AppNodeActionsForConsumers extends Thread {
                         System.out.println("[Publisher]: Notifying brokers of new content.");
                         out.writeObject(appNode);
                         out.flush();
+                        System.out.println(in.readObject());
+                        System.out.println("[Consumer]: Sending info table request to Broker.");
+                        out.writeObject("INFO");
+                        out.flush();
+                        in.readObject();
+                        //System.out.println();
+                        appNode.setInfoTable((InfoTable) in.readObject());
                         /*System.out.println(appNode.getChannel().getAllHashtagsPublished());
                         System.out.println(appNode.getChannel().getAllVideosPublished());
                         System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
@@ -287,6 +301,13 @@ public class AppNodeActionsForConsumers extends Thread {
                         System.out.println("[Publisher]: Notifying brokers of new content.");
                         out.writeObject(appNode);
                         out.flush();
+                        System.out.println(in.readObject());
+                        System.out.println("[Consumer]: Sending info table request to Broker.");
+                        out.writeObject("INFO");
+                        out.flush();
+                        in.readObject();
+                        //System.out.println();
+                        appNode.setInfoTable((InfoTable) in.readObject());
                         /*System.out.println(appNode.getChannel().getAllHashtagsPublished());
                         System.out.println(appNode.getChannel().getAllVideosPublished());
                         System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
@@ -332,14 +353,14 @@ public class AppNodeActionsForConsumers extends Thread {
     public void selectPublishedVideos() {
         System.out.println("LIST OF PUBLISHED VIDEOS.");
         HashMap<File, ArrayList<String>> userHashtagsPerVideo = appNode.getChannel().getUserHashtagsPerVideo();
-        int index = userHashtagsPerVideo.size() - 1;
+        int index = 0;//userHashtagsPerVideo.size() - 1;
         for (File videoPublished : userHashtagsPerVideo.keySet()) {
             String videoTitle = videoPublished.getPath();
             videoTitle = videoTitle.substring(videoTitle.lastIndexOf('\\') + 1, videoTitle.indexOf(".mp4"));
             System.out.println(index + ". " + videoTitle);
             System.out.println("\tHashtags of video: " + userHashtagsPerVideo.get(videoPublished));
             System.out.println("----------------------------------");
-            index--;
+            index++;
         }
         System.out.println("Please type in the number of the video you want to delete.");
         int choice = -1;
