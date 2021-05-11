@@ -72,8 +72,6 @@ public class AppNode extends Node {
     }
 
     public void uploadVideo(String directory, ArrayList<String> hashtags) {
-        System.out.println(getChannel().getAllVideosPublished());
-        System.out.println(getChannel().getUserHashtagsPerVideo());
         File videoFile = new File(directory);
         if (getChannel().getAllVideosPublished().contains(videoFile)){
             System.out.println("Video has been uploaded. Please chose upload again if you'd like to upload a NEW video.");
@@ -95,8 +93,6 @@ public class AppNode extends Node {
         }
         getChannel().getAllVideosPublished().add(videoFile);
         getChannel().getUserHashtagsPerVideo().put(videoFile, hashtags);
-        System.out.println(getChannel().getAllVideosPublished());
-        System.out.println(getChannel().getUserHashtagsPerVideo());
     }
 
     public void deleteVideo(File video) {

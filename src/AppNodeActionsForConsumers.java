@@ -255,7 +255,12 @@ public class AppNodeActionsForConsumers extends Thread {
                 } else if (option == POST_VIDEO) {
                     if (appNode.isPublisher()) {
                         System.out.println("[Publisher]: User already registered as publisher.");
+                        System.out.println(appNode.getChannel().getAllVideosPublished());
+                        System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
+                        System.out.println("UPDATING------------------------------------");
                         uploadVideoRequest();
+                        System.out.println(appNode.getChannel().getAllVideosPublished());
+                        System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
                         System.out.println("[Publisher]: Notifying brokers of new content.");
                         out.writeObject(appNode);
                         out.flush();
@@ -272,7 +277,12 @@ public class AppNodeActionsForConsumers extends Thread {
                         System.out.println(appNode.getChannel().getUserVideosByHashtag());*/
                     } else {
                         appNode.setPublisher(true);
+                        System.out.println(appNode.getChannel().getAllVideosPublished());
+                        System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
+                        System.out.println("UPDATING------------------------------------");
                         uploadVideoRequest();
+                        System.out.println(appNode.getChannel().getAllVideosPublished());
+                        System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
                         System.out.println("[Publisher]: Notifying brokers of new content.");
                         out.writeObject(appNode);
                         out.flush();
@@ -297,7 +307,12 @@ public class AppNodeActionsForConsumers extends Thread {
                     }
                 } else if (option == DELETE_VIDEO) {
                     if (appNode.isPublisher()) {
+                        System.out.println(appNode.getChannel().getAllVideosPublished());
+                        System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
+                        System.out.println("DELETING-------------------------");
                         selectPublishedVideos();
+                        System.out.println(appNode.getChannel().getAllVideosPublished());
+                        System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
                         System.out.println("[Publisher]: Notifying brokers of new content.");
                         out.writeObject(appNode);
                         out.flush();
