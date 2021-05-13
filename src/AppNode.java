@@ -55,7 +55,7 @@ public class AppNode extends Node {
         this.channel = channel;
     }
 
-    public HashMap<String, ArrayList<File>> getSubscribedTopics() {
+    public synchronized HashMap<String, ArrayList<File>> getSubscribedTopics() {
         return subscribedTopics;
     }
 
@@ -71,7 +71,7 @@ public class AppNode extends Node {
         return this.getAddress().compare(appNode.getAddress());
     }
 
-    public void uploadVideo(String directory, ArrayList<String> hashtags) {
+    public synchronized void uploadVideo(String directory, ArrayList<String> hashtags) {
         File videoFile = new File(directory);
         if (getChannel().getAllVideosPublished().contains(videoFile)){
             System.out.println("Video has been uploaded. Please chose upload again if you'd like to upload a NEW video.");
@@ -95,7 +95,7 @@ public class AppNode extends Node {
         getChannel().getUserHashtagsPerVideo().put(videoFile, hashtags);
     }
 
-    public void deleteVideo(File video) {
+    public synchronized void deleteVideo(File video) {
         getChannel().getAllVideosPublished().remove(video);
         ArrayList<String> hashtagsAssociated = getChannel().getUserHashtagsPerVideo().get(video);
         getChannel().getUserHashtagsPerVideo().remove(video);
@@ -115,7 +115,7 @@ public class AppNode extends Node {
         System.out.println(getChannel().getUserVideosByHashtag());
     }
 
-    public boolean updateOnSubscriptions(){
+    public synchronized boolean updateOnSubscriptions(){
         boolean shouldUpdate = false;
         for (String topic: subscribedTopics.keySet()){
             ArrayList<File> availableVideos = new ArrayList<>(infoTable.getAllVideosByTopic().get(topic));
@@ -168,7 +168,7 @@ public class AppNode extends Node {
         channel.setAllVideosPublished(allVideosPublished);
     }//reads hashtags from txt file and returns them in list of String
 
-    ArrayList<String> readHashtagsFile(File hashtag, ArrayList<String> allHashtagsPublished) {
+    public ArrayList<String> readHashtagsFile(File hashtag, ArrayList<String> allHashtagsPublished) {
         ArrayList<String> hashtagList = new ArrayList<>();
         Scanner hashtagReader = null;
         try {

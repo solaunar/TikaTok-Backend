@@ -28,7 +28,15 @@ public class BrokerActionsForAppNodes extends Thread {
                 Object message = in.readObject();
                 if (message instanceof AppNode) {
                     AppNode user = (AppNode) message;
-                    broker.updateInfoTable(user);
+                    ArrayList<String> allHashtagsPublished = (ArrayList<String>) in.readObject();
+                    System.out.println(allHashtagsPublished);
+                    ArrayList<File> allVideosPublished = (ArrayList<File>) in.readObject();
+                    System.out.println(allVideosPublished);
+                    HashMap<String, ArrayList<File>> userVideosByHashtag = (HashMap<String, ArrayList<File>>) in.readObject();
+                    System.out.println(userVideosByHashtag);
+                    boolean isPublisher = in.readBoolean();
+                    System.out.println(isPublisher);
+                    broker.updateInfoTable(user, allHashtagsPublished, allVideosPublished, userVideosByHashtag, isPublisher);
                     System.out.println("[Broker]: AppNode: " + user.getChannel().getChannelName() + " data retrieved.");
                     out.writeObject("[Broker(" + broker.getAddress() + " )]: AppNode data retrieved.");
                     out.flush();
@@ -45,13 +53,17 @@ public class BrokerActionsForAppNodes extends Thread {
                         System.out.println("[Broker]: Received request for INFO table...");
                         out.writeObject("[Broker]: Getting info table for brokers...");
                         out.flush();
-                        broker.updateInfoTable(null);
+                        broker.updateInfoTable(null, null, null, null, false);
                         out.writeObject(broker.getInfoTable());
                         out.flush();
                     } else if (command.equals("PUBLISHER")){
                         ArrayList<String> topicsPub = (ArrayList<String>) in.readObject();
                         AppNode publisher = (AppNode) in.readObject();
-                        broker.updateInfoTable(publisher);
+                        ArrayList<String> allHashtagsPublished = (ArrayList<String>) in.readObject();
+                        ArrayList<File> allVideosPublished = (ArrayList<File>) in.readObject();
+                        HashMap<String, ArrayList<File>> userVideosByHashtag = (HashMap<String, ArrayList<File>>) in.readObject();
+                        boolean isPublisher = in.readBoolean();
+                        broker.updateInfoTable(publisher, allHashtagsPublished, allVideosPublished, userVideosByHashtag, isPublisher);
                     } else if (command.equals("RC")){
                         System.out.println("[Broker]: Received request for redirection of connection.");
                         Address rcAdress = (Address)in.readObject();

@@ -18,10 +18,10 @@ public class ZookeeperActionsForBrokers extends Thread {
     Socket connection;
     Zookeeper zookeeper;
 
-    public ZookeeperActionsForBrokers(Socket connection, Zookeeper zookeeper){
+    public ZookeeperActionsForBrokers(Socket connection, Zookeeper zookeeper) {
         this.connection = connection;
         this.zookeeper = zookeeper;
-        try{
+        try {
             out = new ObjectOutputStream(connection.getOutputStream());
             in = new ObjectInputStream(connection.getInputStream());
         } catch (IOException e) {
@@ -30,22 +30,29 @@ public class ZookeeperActionsForBrokers extends Thread {
     }
 
     @Override
-    public void run(){
+    public void run() {
         System.out.println("[Zookeeper]: Connection is made with broker at port: " + connection.getPort());
         try {
             int requestCode = in.readInt();
             //System.out.println(requestCode);
-            if (requestCode == GET_INFOTABLE){
+            if (requestCode == GET_INFOTABLE) {
                 System.out.println("[Zookeeper]: Received request for InfoTable.");
                 out.writeObject(zookeeper.getInfoTable());
                 out.flush();
-            } else if (requestCode == UPDATE_INFOTABLE){
+            } else if (requestCode == UPDATE_INFOTABLE) {
                 System.out.println("[Zookeeper]: Received request for InfoTable update.");
                 AppNode appNode = (AppNode) in.readObject();
                 Address broker = (Address) in.readObject();
+                ArrayList<String> allHashtagsPublished = (ArrayList<String>) in.readObject();
+                ArrayList<File> allVideosPublished = (ArrayList<File>) in.readObject();
+                HashMap<String, ArrayList<File>> userVideosByHashtag = (HashMap<String, ArrayList<File>>) in.readObject();
+                boolean isPublisher = in.readBoolean();
+                updateInfoTable(appNode, allHashtagsPublished, allVideosPublished, userVideosByHashtag, isPublisher, broker);
+            } else if (requestCode == 2) {
+                System.out.println("[Zookeeper]: Received request for InfoTable update of brokerID.");
+                Address broker = (Address) in.readObject();
                 BigInteger brokerID = (BigInteger) in.readObject();
-                boolean updateID = in.readBoolean();
-                updateInfoTable(appNode, broker, brokerID, updateID);
+                updateID(broker, brokerID);
             }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -60,14 +67,12 @@ public class ZookeeperActionsForBrokers extends Thread {
         }
     }
 
-    public synchronized void updateInfoTable(AppNode appNode, Address broker, BigInteger brokerID, boolean updateID) throws IOException {
+    public synchronized void updateID(Address broker, BigInteger brokerID) throws IOException {
         HashMap<Address, BigInteger> hashingIDAssociatedWithBrokers = zookeeper.getInfoTable().getHashingIDAssociatedWithBrokers();
         HashMap<Address, ArrayList<String>> topicsAssociatedWithBrokers = zookeeper.getInfoTable().getTopicsAssociatedWithBrokers();
-        HashMap<String, ArrayList<File>> allVideosByTopic = zookeeper.getInfoTable().getAllVideosByTopic();
-        //update - add brokerID if the parameter is not zero and if the boolean updateID is true
-        if (brokerID.compareTo(BigInteger.valueOf(0))!=0 && updateID){
+        if (brokerID.compareTo(BigInteger.valueOf(0)) != 0) {
             boolean existsHashingID = checkBrokerExistence(broker, null, hashingIDAssociatedWithBrokers);
-            if (hashingIDAssociatedWithBrokers.containsKey(broker) || existsHashingID){
+            if (hashingIDAssociatedWithBrokers.containsKey(broker) || existsHashingID) {
                 System.out.println("[Zookeeper]: Updating brokerID associated with broker: " + broker.toString());
                 hashingIDAssociatedWithBrokers.replace(broker, brokerID);
                 topicsAssociatedWithBrokers.replace(broker, new ArrayList<String>());
@@ -81,61 +86,57 @@ public class ZookeeperActionsForBrokers extends Thread {
                 out.flush();
             }
         }
+    }
+
+    public synchronized void updateInfoTable(AppNode appNode, ArrayList<String> allHashtagsPublished, ArrayList<File> allVideosPublished, HashMap<String, ArrayList<File>> userVideosByHashtag, boolean isPublisher, Address broker) throws IOException {
+        //update - add brokerID if the parameter is not zero and if the boolean updateID is true
         //if the boolean updateID is false then we got a new pub
-        else {
-            out.writeObject("[Zookeeper]: Updating info table...");
-            out.flush();
-            if (appNode != null && appNode.isPublisher()) {
-                if (!checkPublisherExistence(appNode) && zookeeper.getInfoTable().getAvailablePublishers() != null) {
-                    zookeeper.getInfoTable().getAvailablePublishers().put(appNode, appNode.getChannel().getAllHashtagsPublished());
-                } else {
-                    zookeeper.getInfoTable().getAvailablePublishers().replace(appNode, appNode.getChannel().getAllHashtagsPublished());
-                }
+        HashMap<Address, BigInteger> hashingIDAssociatedWithBrokers = zookeeper.getInfoTable().getHashingIDAssociatedWithBrokers();
+        HashMap<Address, ArrayList<String>> topicsAssociatedWithBrokers = zookeeper.getInfoTable().getTopicsAssociatedWithBrokers();
+        HashMap<String, ArrayList<File>> allVideosByTopic = zookeeper.getInfoTable().getAllVideosByTopic();
+        out.writeObject("[Zookeeper]: Updating info table...");
+        out.flush();
+        if (appNode != null && isPublisher) {
+            allHashtagsPublished.add(appNode.getChannel().getChannelName());
+            if (!checkPublisherExistence(appNode) && zookeeper.getInfoTable().getAvailablePublishers() != null) {
+                zookeeper.getInfoTable().getAvailablePublishers().put(appNode, allHashtagsPublished);
+            } else {
+                zookeeper.getInfoTable().getAvailablePublishers().replace(appNode, allHashtagsPublished);
             }
-            ArrayList<String> allAvailableTopics = new ArrayList<>();
-            for (AppNode publisher : zookeeper.getInfoTable().getAvailablePublishers().keySet()) {
-                ArrayList<String> publisherTopics = zookeeper.getInfoTable().getAvailablePublishers().get(publisher);
-                publisherTopics.add(publisher.getChannel().getChannelName());
-                allAvailableTopics.addAll(publisherTopics);
-                ArrayList<Address> topicsHashed = new ArrayList<>();
-                for (String topic : publisherTopics) {
-                    topicsHashed.add(publisher.hashTopic(topic, hashingIDAssociatedWithBrokers));
-                }
-                //System.out.println(topicsHashed);
-                for (Address brokerAdd : hashingIDAssociatedWithBrokers.keySet()) {
-                    ArrayList<String> topicAssociated = topicsAssociatedWithBrokers.get(brokerAdd);
-                    for (int i = 0; i < topicsHashed.size(); i++) {
-                        if (brokerAdd.compare(topicsHashed.get(i))) {
-                            if(!topicAssociated.contains(publisherTopics.get(i))) {
-                                topicAssociated.add(publisherTopics.get(i));
-                            }
-                        }
-                    }
+
+            ArrayList<String> allAvailableTopics = zookeeper.getInfoTable().getAvailableTopics();
+            for (String newTopic : allHashtagsPublished) {
+                if (!allAvailableTopics.contains(newTopic))
+                    allAvailableTopics.add(newTopic);
+                Address brokerAdd = appNode.hashTopic(newTopic, hashingIDAssociatedWithBrokers);
+                ArrayList<String> topicAssociated = topicsAssociatedWithBrokers.get(brokerAdd);
+                if (!topicAssociated.contains(newTopic)) {
+                    topicAssociated.add(newTopic);
                     topicsAssociatedWithBrokers.replace(brokerAdd, topicAssociated);
                 }
-            }
-            for (String availableTopic: allAvailableTopics){
-                //System.out.println("MPHKA STH FOR");
-                ArrayList<File> filesAssociated = new ArrayList<>();
-                for (AppNode availablePublisher : zookeeper.getInfoTable().getAvailablePublishers().keySet()){
-                    if (availableTopic.equals(availablePublisher.getChannel().getChannelName())){
-                        if(allVideosByTopic.containsKey(availableTopic)){
-                            allVideosByTopic.replace(availableTopic, availablePublisher.getChannel().getAllVideosPublished());
-                        } else {
-                            allVideosByTopic.put(availableTopic, availablePublisher.getChannel().getAllVideosPublished());
-                        }
-                        break;
-                    }
-                    if (availableTopic.startsWith("#"))
-                        if(availablePublisher.getChannel().getUserVideosByHashtag().containsKey(availableTopic))
-                            filesAssociated.addAll(availablePublisher.getChannel().getUserVideosByHashtag().get(availableTopic));
-                }
-                if(availableTopic.startsWith("#")){
-                    if (allVideosByTopic.containsKey(availableTopic)){
-                        allVideosByTopic.replace(availableTopic, filesAssociated);
+                if (!allVideosByTopic.containsKey(newTopic)) {
+                    ArrayList<File> filesAssociated = new ArrayList<>();
+                    if (newTopic.startsWith("#")) {
+                        filesAssociated.addAll(userVideosByHashtag.get(newTopic));
                     } else {
-                        allVideosByTopic.put(availableTopic, filesAssociated);
+                        filesAssociated.addAll(allVideosPublished);
                     }
+                    allVideosByTopic.put(newTopic, filesAssociated);
+                } else {
+                    ArrayList<File> filesAssociated = allVideosByTopic.get(newTopic);
+                    if (newTopic.startsWith("#")) {
+                        ArrayList<File> filesOfPublisherHashtag = userVideosByHashtag.get(newTopic);
+                        for (File filePub : filesOfPublisherHashtag) {
+                            if (!filesAssociated.contains(filePub))
+                                filesAssociated.add(filePub);
+                        }
+                    } else {
+                        for (File filePub : allVideosPublished) {
+                            if (!filesAssociated.contains(filePub))
+                                filesAssociated.add(filePub);
+                        }
+                    }
+                    allVideosByTopic.replace(newTopic, filesAssociated);
                 }
             }
         }
@@ -144,26 +145,27 @@ public class ZookeeperActionsForBrokers extends Thread {
         System.out.println(zookeeper.getInfoTable());
         out.writeObject(zookeeper.getInfoTable());
         out.flush();
-        out.writeObject("[Zookeeper]: Sent updated info table." );
+        out.writeObject("[Zookeeper]: Sent updated info table.");
         out.flush();
-        System.out.println("[Zookeeper]: Sent updated InfoTable to broker."+ broker);
+        System.out.println("[Zookeeper]: Sent updated InfoTable to broker." + broker);
     }
 
-    public boolean checkPublisherExistence(AppNode publisher){
-        for (AppNode availablePublisher : zookeeper.getInfoTable().getAvailablePublishers().keySet()){
+    public boolean checkPublisherExistence(AppNode publisher) {
+        for (AppNode availablePublisher : zookeeper.getInfoTable().getAvailablePublishers().keySet()) {
             if (availablePublisher.compare(publisher))
                 return true;
         }
         return false;
     }
-    public boolean checkBrokerExistence(Address broker, HashMap<Address, ArrayList<String>> topicsAssociatedWithBrokers, HashMap<Address, BigInteger> hashingIDAssociatedWithBrokers){
-        if (topicsAssociatedWithBrokers!=null){
-            for (Address address: topicsAssociatedWithBrokers.keySet())
+
+    public boolean checkBrokerExistence(Address broker, HashMap<Address, ArrayList<String>> topicsAssociatedWithBrokers, HashMap<Address, BigInteger> hashingIDAssociatedWithBrokers) {
+        if (topicsAssociatedWithBrokers != null) {
+            for (Address address : topicsAssociatedWithBrokers.keySet())
                 if (broker.compare(address))
                     return true;
         }
-        if (hashingIDAssociatedWithBrokers!=null){
-            for (Address address: hashingIDAssociatedWithBrokers.keySet())
+        if (hashingIDAssociatedWithBrokers != null) {
+            for (Address address : hashingIDAssociatedWithBrokers.keySet())
                 if (broker.compare(address))
                     return true;
         }

@@ -1,8 +1,5 @@
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,9 +11,9 @@ import java.util.HashMap;
 
 public class Broker extends Node{
     private static final int UPDATE_NODES = 0;
-    private static final int GET_INFOTABLE = 1;
-    private static final int UPDATE_INFOTABLE = 2;
-    private static final int UPDATE_PUBLISHERS = 3;
+    private static final int UPDATE_ID = 2;
+    //private static final int UPDATE_INFOTABLE = 2;
+    //private static final int UPDATE_PUBLISHERS = 3;
     private boolean updateID = true;
     private Address address;
     private BigInteger brokerID = BigInteger.valueOf(0);
@@ -86,7 +83,7 @@ public class Broker extends Node{
         Thread zookeeperThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                updateInfoTable(null);
+                updateID();
                 updateID = false;
             }
         });
@@ -133,7 +130,39 @@ public class Broker extends Node{
         brokerID = new BigInteger(digest);
     }
 
-    public void updateInfoTable(AppNode appNode){
+    public void updateID(){
+        System.out.println("yo");
+        Socket brokerSocket = null;
+        ObjectOutputStream brokerSocketOut = null;
+        ObjectInputStream brokerSocketIn = null;
+        try{
+            brokerSocket = new Socket(Node.ZOOKEEPER_ADDRESS.getIp(), Node.ZOOKEEPER_ADDRESS.getPort());
+            brokerSocketOut = new ObjectOutputStream(brokerSocket.getOutputStream());
+            brokerSocketIn = new ObjectInputStream(brokerSocket.getInputStream());
+            brokerSocketOut.writeInt(UPDATE_ID);
+            brokerSocketOut.flush();
+            brokerSocketOut.writeObject(address);
+            brokerSocketOut.flush();
+            brokerSocketOut.writeObject(brokerID);
+            brokerSocketOut.flush();
+            System.out.println(brokerSocketIn.readObject());
+            brokerSocketIn.close();
+            brokerSocketOut.close();
+            brokerSocket.close();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                brokerSocketIn.close();
+                brokerSocketOut.close();
+                brokerSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void updateInfoTable(AppNode appNode, ArrayList<String> allHashtagsPublished, ArrayList<File> allVideosPublished, HashMap<String, ArrayList<File>> userVideosByHashtag, boolean isPublisher){
         Socket brokerSocket = null;
         ObjectOutputStream brokerSocketOut = null;
         ObjectInputStream brokerSocketIn = null;
@@ -147,9 +176,13 @@ public class Broker extends Node{
             brokerSocketOut.flush();
             brokerSocketOut.writeObject(address);
             brokerSocketOut.flush();
-            brokerSocketOut.writeObject(brokerID);
+            brokerSocketOut.writeObject(allHashtagsPublished);
             brokerSocketOut.flush();
-            brokerSocketOut.writeBoolean(updateID);
+            brokerSocketOut.writeObject(allVideosPublished);
+            brokerSocketOut.flush();
+            brokerSocketOut.writeObject(userVideosByHashtag);
+            brokerSocketOut.flush();
+            brokerSocketOut.writeBoolean(isPublisher);
             brokerSocketOut.flush();
             System.out.println(brokerSocketIn.readObject());
             infoTable = (InfoTable) brokerSocketIn.readObject();

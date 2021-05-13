@@ -11,6 +11,7 @@ public class InfoTable implements Serializable {
     private HashMap<Address, BigInteger> hashingIDAssociatedWithBrokers = new HashMap<>();
     private HashMap<AppNode, ArrayList<String>> availablePublishers = new HashMap<>();
     private HashMap<String, ArrayList<File>> allVideosByTopic = new HashMap<>();
+    private ArrayList<String> availableTopics = new ArrayList<>();
     public InfoTable() {
     }
 
@@ -20,6 +21,14 @@ public class InfoTable implements Serializable {
 
     public void setTopicsAssociatedWithBrokers(HashMap<Address, ArrayList<String>> topicsAssociatedWithBrokers) {
         this.topicsAssociatedWithBrokers = topicsAssociatedWithBrokers;
+    }
+
+    public synchronized ArrayList<String> getAvailableTopics() {
+        return availableTopics;
+    }
+
+    public void setAvailableTopics(ArrayList<String> availableTopics) {
+        this.availableTopics = availableTopics;
     }
 
     public synchronized HashMap<Address, BigInteger> getHashingIDAssociatedWithBrokers() {
