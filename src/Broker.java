@@ -180,6 +180,7 @@ public class Broker extends Node{
             brokerSocketOut.flush();
             brokerSocketOut.writeObject(allVideosPublished);
             brokerSocketOut.flush();
+            System.out.println(userVideosByHashtag);
             brokerSocketOut.writeObject(userVideosByHashtag);
             brokerSocketOut.flush();
             brokerSocketOut.writeBoolean(isPublisher);

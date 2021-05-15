@@ -117,8 +117,10 @@ public class AppNode extends Node {
 
     public synchronized boolean updateOnSubscriptions(){
         boolean shouldUpdate = false;
+        System.out.println(subscribedTopics);
         for (String topic: subscribedTopics.keySet()){
             ArrayList<File> availableVideos = new ArrayList<>(infoTable.getAllVideosByTopic().get(topic));
+            System.out.println(availableVideos);
             if (getChannel().getAllHashtagsPublished().contains(topic)){
                 availableVideos.removeAll(getChannel().getUserVideosByHashtag().get(topic));
             }

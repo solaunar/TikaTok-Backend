@@ -123,9 +123,12 @@ public class ZookeeperActionsForBrokers extends Thread {
                     }
                     allVideosByTopic.put(newTopic, filesAssociated);
                 } else {
+                    System.out.println(userVideosByHashtag);
                     ArrayList<File> filesAssociated = allVideosByTopic.get(newTopic);
                     if (newTopic.startsWith("#")) {
+                        System.out.println(newTopic);
                         ArrayList<File> filesOfPublisherHashtag = userVideosByHashtag.get(newTopic);
+                        System.out.println(filesOfPublisherHashtag);
                         for (File filePub : filesOfPublisherHashtag) {
                             if (!filesAssociated.contains(filePub))
                                 filesAssociated.add(filePub);

@@ -202,7 +202,7 @@ public class AppNodeActionsForConsumers extends Thread {
                             }
                         } else{
                             System.out.println("You are already subscribed to this topic.");
-                            continue;
+                            break;
                         }
                     } else {
                         System.out.println("You can't subscribe to your own videos.");
@@ -272,9 +272,9 @@ public class AppNodeActionsForConsumers extends Thread {
                         out.writeObject(tempAllVideosPublished);
                         out.flush();
                         System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
-                        HashMap<String, ArrayList<File>> tempUserVideosByHashtag = new HashMap<>();
-                        tempUserVideosByHashtag.putAll(appNode.getChannel().getUserVideosByHashtag());
-                        System.out.println(tempUserVideosByHashtag);
+                        HashMap<String, ArrayList<File>> tempUserVideosByHashtag = updateUserVideosByHashtag();//new HashMap<>();
+                        //tempUserVideosByHashtag.putAll(appNode.getChannel().getUserVideosByHashtag());
+                        //System.out.println(tempUserVideosByHashtag);
                         out.writeObject(tempUserVideosByHashtag);
                         out.flush();
                         System.out.println(appNode.isPublisher());
@@ -312,9 +312,9 @@ public class AppNodeActionsForConsumers extends Thread {
                         out.writeObject(tempAllVideosPublished);
                         out.flush();
                         System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
-                        HashMap<String, ArrayList<File>> tempUserVideosByHashtag = new HashMap<>();
-                        tempUserVideosByHashtag.putAll(appNode.getChannel().getUserVideosByHashtag());
-                        System.out.println(tempUserVideosByHashtag);
+                        HashMap<String, ArrayList<File>> tempUserVideosByHashtag = updateUserVideosByHashtag();//new HashMap<>();
+                        //tempUserVideosByHashtag.putAll(appNode.getChannel().getUserVideosByHashtag());
+                        //System.out.println(tempUserVideosByHashtag);
                         out.writeObject(tempUserVideosByHashtag);
                         out.flush();
                         System.out.println(appNode.isPublisher());
@@ -346,6 +346,29 @@ public class AppNodeActionsForConsumers extends Thread {
                         selectPublishedVideos();
                         System.out.println("[Publisher]: Notifying brokers of new content.");
                         out.writeObject(appNode);
+                        out.flush();
+                        System.out.println(appNode.getChannel().getAllHashtagsPublished());
+                        ArrayList<String> tempAllHashtagsPublished = new ArrayList<>();
+                        tempAllHashtagsPublished.addAll(appNode.getChannel().getAllHashtagsPublished());
+                        System.out.println(tempAllHashtagsPublished);
+                        out.writeObject(tempAllHashtagsPublished);
+                        out.flush();
+                        System.out.println(appNode.getChannel().getAllVideosPublished());
+                        ArrayList<File> tempAllVideosPublished = new ArrayList<>();
+                        tempAllVideosPublished.addAll(appNode.getChannel().getAllVideosPublished());
+                        System.out.println(tempAllVideosPublished);
+                        out.writeObject(tempAllVideosPublished);
+                        out.flush();
+                        System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
+                        HashMap<String, ArrayList<File>> tempUserVideosByHashtag = updateUserVideosByHashtag();//new HashMap<>();
+                        //tempUserVideosByHashtag.putAll(appNode.getChannel().getUserVideosByHashtag());
+                        //System.out.println(tempUserVideosByHashtag);
+                        out.writeObject(tempUserVideosByHashtag);
+                        out.flush();
+                        System.out.println(appNode.isPublisher());
+                        boolean isPublisher = appNode.isPublisher();
+                        System.out.println(isPublisher);
+                        out.writeBoolean(isPublisher);
                         out.flush();
                         System.out.println(in.readObject());
                         System.out.println("[Consumer]: Sending info table request to Broker.");
@@ -396,6 +419,7 @@ public class AppNodeActionsForConsumers extends Thread {
         appNode.setInfoTable((InfoTable) in.readObject());
         //System.out.println(appNode.getInfoTable());
     }
+
     public void selectPublishedVideos() {
         System.out.println("LIST OF PUBLISHED VIDEOS.");
         HashMap<File, ArrayList<String>> userHashtagsPerVideo = appNode.getChannel().getUserHashtagsPerVideo();
@@ -515,5 +539,16 @@ public class AppNodeActionsForConsumers extends Thread {
             }
         }
         return null;
+    }
+
+    public HashMap<String, ArrayList<File>> updateUserVideosByHashtag(){
+        HashMap<String, ArrayList<File>> objUserVideosByHashtag = appNode.getChannel().getUserVideosByHashtag();
+        HashMap<String, ArrayList<File>> newUserVideosByHashtag = new HashMap<>();
+        for (String hashtag: objUserVideosByHashtag.keySet()){
+            ArrayList<File> newVideosAssociated = new ArrayList<>();
+            newVideosAssociated.addAll(objUserVideosByHashtag.get(hashtag));
+            newUserVideosByHashtag.put(hashtag, newVideosAssociated);
+        }
+        return newUserVideosByHashtag;
     }
 }
