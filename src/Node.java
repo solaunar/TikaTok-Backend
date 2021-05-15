@@ -2,7 +2,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Node /*extends Thread*/ implements Serializable {
+//Node class, saves the addresses of the AppNodes, Brokers and Zookeeper
+public class Node implements Serializable {
     //Broker Addresses (ip, port)
     static protected final ArrayList<Address> BROKER_ADDRESSES = new ArrayList<>(Arrays.asList(
             new Address("127.0.0.1", 5000),

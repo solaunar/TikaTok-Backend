@@ -6,10 +6,19 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
+/**
+ * AppNode class extends Node
+ *
+ * AppNode represents a user of the system
+ * Publisher/ Consumer or both
+ */
 public class AppNode extends Node {
+
+    //userDirectory, the path where the already uploaded files of
+    //a user are stored, might be blank forever
     private String userDirectory = "";
     private Address address;
-    transient Scanner appNodeInput = null;
+    transient Scanner appNodeInput;
     private Channel channel;
     transient ServerSocket appNodeServerSocket = null;
     transient Socket connection = null;
@@ -250,8 +259,7 @@ public class AppNode extends Node {
         BigInteger maxID = brokers.get(brokers.size() - 1);
         hashTopic = hashTopic.mod(maxID);
 
-        for (int i = 0; i < brokers.size(); i++) {
-            BigInteger id = brokers.get(i);
+        for (BigInteger id : brokers) {
             if (hashTopic.compareTo(id) < 0) {
                 for (Map.Entry<Address, BigInteger> entry : hashIDAssociatedWithBrokers.entrySet()) {
                     if (entry.getValue().equals(id)) {
