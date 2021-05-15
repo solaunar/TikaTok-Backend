@@ -33,6 +33,7 @@ public class AppNodeActionsForBrokers extends Thread {
             if (request instanceof VideoFile){
                 System.out.println("Broker asked for a specific video file.");
                 File video = ((VideoFile) request).getFile();
+                System.out.println(video);
                 ArrayList<VideoFile> chunks = chunkVideo(video);
                 for (VideoFile chunk : chunks) {
                     push(chunk);
@@ -53,12 +54,13 @@ public class AppNodeActionsForBrokers extends Thread {
 
     public ArrayList<VideoFile> chunkVideo(File file) {
         ArrayList<VideoFile> chunks = new ArrayList<>();
+        File peepee = new File(file.getPath());
         int sizeOfChunk = 1024 * 512;// 0.5MB = 512KB
         byte[] buffer;
         try {
             BodyContentHandler handler = new BodyContentHandler();
             Metadata metadata = new Metadata();
-            FileInputStream inputstream = new FileInputStream(file);
+            FileInputStream inputstream = new FileInputStream(peepee);
             ParseContext pcontext = new ParseContext();
             MP4Parser MP4Parser = new MP4Parser();
             MP4Parser.parse(inputstream, handler, metadata, pcontext);

@@ -165,7 +165,7 @@ public class BrokerActionsForAppNodes extends Thread {
         /**ITERATE HASHMAP NOT ARRAYLIST**/
         for (AppNode user: broker.getRegisteredPublishers()){
             if (consumer.compare(user)) continue;
-            ArrayList<File> allVideosPublished = user.getChannel().getAllVideosPublished();
+            ArrayList<File> allVideosPublished = broker.getInfoTable().getAllVideosByTopic().get(user.getChannel().getChannelName());
             for (File video : allVideosPublished){
                 if (video.equals(videoFile.getFile())){
                     publisherServer = user.getAddress().getPort();
