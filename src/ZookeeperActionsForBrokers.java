@@ -12,7 +12,8 @@ import java.util.HashMap;
 
 public class ZookeeperActionsForBrokers extends Thread {
     private static final int UPDATE_INFOTABLE = 0;
-    private static final int GET_INFOTABLE = 1;
+    private static final int UPDATE_ON_DELETE = 1;
+    private static final int UPDATE_ID = 2;
     ObjectOutputStream out = null;
     ObjectInputStream in = null;
     Socket connection;
@@ -35,10 +36,12 @@ public class ZookeeperActionsForBrokers extends Thread {
         try {
             int requestCode = in.readInt();
             //System.out.println(requestCode);
-            if (requestCode == GET_INFOTABLE) {
-                System.out.println("[Zookeeper]: Received request for InfoTable.");
-                out.writeObject(zookeeper.getInfoTable());
-                out.flush();
+            if (requestCode == UPDATE_ON_DELETE) {
+                System.out.println("[Zookeeper]: Received request for video deletion.");
+                AppNode appNode = (AppNode) in.readObject();
+                File toBeDeleted = (File) in.readObject();
+                ArrayList<String> allHashtagsPublished = (ArrayList<String>) in.readObject();
+                updateOnDelete(appNode, toBeDeleted, allHashtagsPublished);
             } else if (requestCode == UPDATE_INFOTABLE) {
                 System.out.println("[Zookeeper]: Received request for InfoTable update.");
                 AppNode appNode = (AppNode) in.readObject();
@@ -48,7 +51,7 @@ public class ZookeeperActionsForBrokers extends Thread {
                 HashMap<String, ArrayList<File>> userVideosByHashtag = (HashMap<String, ArrayList<File>>) in.readObject();
                 boolean isPublisher = in.readBoolean();
                 updateInfoTable(appNode, allHashtagsPublished, allVideosPublished, userVideosByHashtag, isPublisher, broker);
-            } else if (requestCode == 2) {
+            } else if (requestCode == UPDATE_ID) {
                 System.out.println("[Zookeeper]: Received request for InfoTable update of brokerID.");
                 Address broker = (Address) in.readObject();
                 BigInteger brokerID = (BigInteger) in.readObject();
@@ -65,6 +68,42 @@ public class ZookeeperActionsForBrokers extends Thread {
                 e.printStackTrace();
             }
         }
+    }
+
+    public synchronized void updateOnDelete(AppNode appNode, File toBeDeleted, ArrayList<String> allHashtagsPublished) throws IOException {
+        out.writeObject("[Zookeeper]: Updating info table...");
+        out.flush();
+        HashMap<Address, ArrayList<String>> topicsAssociatedWithBrokers = zookeeper.getInfoTable().getTopicsAssociatedWithBrokers();
+        HashMap<String, ArrayList<File>> allVideosByTopic = zookeeper.getInfoTable().getAllVideosByTopic();
+        HashMap<AppNode, ArrayList<String>> availablePublishers = zookeeper.getInfoTable().getAvailablePublishers();
+        availablePublishers.replace(appNode, allHashtagsPublished);
+        ArrayList<String> topicsThatDoNotExist = new ArrayList<>();
+        for (String availableTopic : allVideosByTopic.keySet()){
+            ArrayList<File> filesAssociated = allVideosByTopic.get(availableTopic);
+            if (filesAssociated.contains(toBeDeleted)){
+                filesAssociated.remove(toBeDeleted);
+                if(filesAssociated.isEmpty()){
+                    topicsThatDoNotExist.add(availableTopic);
+                }
+            }
+        }
+        for (String topicToBeDeleted : topicsThatDoNotExist){
+            for (Address broker: topicsAssociatedWithBrokers.keySet()){
+                ArrayList<String> updatedAssociatedTopics = topicsAssociatedWithBrokers.get(broker);
+                if (updatedAssociatedTopics.contains(topicToBeDeleted)){
+                    updatedAssociatedTopics.remove(topicToBeDeleted);
+                    topicsAssociatedWithBrokers.replace(broker, updatedAssociatedTopics);
+                }
+            }
+            allVideosByTopic.remove(topicToBeDeleted);
+        }
+        System.out.println(allVideosByTopic);
+        System.out.println("[Zookeeper]: Updated InfoTable.");
+        System.out.println(zookeeper.getInfoTable());
+        out.writeObject(zookeeper.getInfoTable());
+        out.flush();
+        out.writeObject("[Zookeeper]: Sent updated info table.");
+        out.flush();
     }
 
     public synchronized void updateID(Address broker, BigInteger brokerID) throws IOException {

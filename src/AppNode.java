@@ -124,21 +124,22 @@ public class AppNode extends Node {
         System.out.println(getChannel().getUserVideosByHashtag());
     }
 
-    public synchronized boolean updateOnSubscriptions(){
-        boolean shouldUpdate = false;
-        System.out.println(subscribedTopics);
+    public synchronized ArrayList<String> updateOnSubscriptions(){
+        ArrayList<String> updatedTopics = new ArrayList<>();
+        System.out.println("Checking for updates");
+        //System.out.println(subscribedTopics);
         for (String topic: subscribedTopics.keySet()){
             ArrayList<File> availableVideos = new ArrayList<>(infoTable.getAllVideosByTopic().get(topic));
-            System.out.println(availableVideos);
+            //System.out.println(availableVideos);
             if (getChannel().getAllHashtagsPublished().contains(topic)){
                 availableVideos.removeAll(getChannel().getUserVideosByHashtag().get(topic));
             }
             if(!subscribedTopics.get(topic).equals(availableVideos)){
-                shouldUpdate = true;
+                updatedTopics.add(topic);
                 subscribedTopics.replace(topic, availableVideos);
             }
         }
-        return shouldUpdate;
+        return updatedTopics;
     }
 
     public void readDirectory() {

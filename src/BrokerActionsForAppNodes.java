@@ -121,6 +121,13 @@ public class BrokerActionsForAppNodes extends Thread {
                         System.out.println(videosToReturn);
                         out.writeObject(videosToReturn.removeAll(consumer.getChannel().getUserVideosByHashtag().get(topic)));
                         out.flush();
+                    } else if(command.equals("DELETE")){
+                        AppNode publisher = (AppNode) in.readObject();
+                        File toBeDeleted = (File) in.readObject();
+                        ArrayList<String> allHashtagsPublished = (ArrayList<String>) in.readObject();
+                        broker.updateOnDelete(publisher, toBeDeleted, allHashtagsPublished);
+                        out.writeObject("[Broker(" + broker.getAddress() + " )]: AppNode data retrieved.");
+                        out.flush();
                     }
                 }
             }

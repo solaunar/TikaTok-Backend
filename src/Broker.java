@@ -12,7 +12,7 @@ import java.util.HashMap;
 public class Broker extends Node{
     private static final int UPDATE_NODES = 0;
     private static final int UPDATE_ID = 2;
-    //private static final int UPDATE_INFOTABLE = 2;
+    private static final int UPDATE_ON_DELETE = 1;
     //private static final int UPDATE_PUBLISHERS = 3;
     private boolean updateID = true;
     private Address address;
@@ -211,4 +211,46 @@ public class Broker extends Node{
         }
     }
 
+    public void updateOnDelete(AppNode appNode, File toBeDeleted, ArrayList<String> allHashtagsPublished){
+        Socket brokerSocket = null;
+        ObjectOutputStream brokerSocketOut = null;
+        ObjectInputStream brokerSocketIn = null;
+        try{
+            brokerSocket = new Socket(Node.ZOOKEEPER_ADDRESS.getIp(), Node.ZOOKEEPER_ADDRESS.getPort());
+            brokerSocketOut = new ObjectOutputStream(brokerSocket.getOutputStream());
+            brokerSocketIn = new ObjectInputStream(brokerSocket.getInputStream());
+            brokerSocketOut.writeInt(UPDATE_ON_DELETE);
+            brokerSocketOut.flush();
+            brokerSocketOut.writeObject(appNode);
+            brokerSocketOut.flush();
+            brokerSocketOut.writeObject(toBeDeleted);
+            brokerSocketOut.flush();
+            brokerSocketOut.writeObject(allHashtagsPublished);
+            brokerSocketOut.flush();
+            System.out.println(brokerSocketIn.readObject());
+            infoTable = (InfoTable) brokerSocketIn.readObject();
+            for (Address broker :infoTable.getTopicsAssociatedWithBrokers().keySet()){
+                if (broker.compare(address))
+                    setTopicsAssociated(infoTable.getTopicsAssociatedWithBrokers().get(broker));
+            }
+            setAvailablePublishers(infoTable.getAvailablePublishers());
+            setRegisteredPublishers();
+            //System.out.println(infoTable);
+            System.out.println(brokerSocketIn.readObject());
+            brokerSocketIn.close();
+            brokerSocketOut.close();
+            brokerSocket.close();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                brokerSocketIn.close();
+                brokerSocketOut.close();
+                brokerSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
 }
