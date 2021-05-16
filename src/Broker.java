@@ -131,7 +131,6 @@ public class Broker extends Node{
     }
 
     public void updateID(){
-        System.out.println("yo");
         Socket brokerSocket = null;
         ObjectOutputStream brokerSocketOut = null;
         ObjectInputStream brokerSocketIn = null;
@@ -180,7 +179,6 @@ public class Broker extends Node{
             brokerSocketOut.flush();
             brokerSocketOut.writeObject(allVideosPublished);
             brokerSocketOut.flush();
-            System.out.println(userVideosByHashtag);
             brokerSocketOut.writeObject(userVideosByHashtag);
             brokerSocketOut.flush();
             brokerSocketOut.writeBoolean(isPublisher);
@@ -193,7 +191,6 @@ public class Broker extends Node{
             }
             setAvailablePublishers(infoTable.getAvailablePublishers());
             setRegisteredPublishers();
-            //System.out.println(infoTable);
             System.out.println(brokerSocketIn.readObject());
             brokerSocketIn.close();
             brokerSocketOut.close();
@@ -235,7 +232,6 @@ public class Broker extends Node{
             }
             setAvailablePublishers(infoTable.getAvailablePublishers());
             setRegisteredPublishers();
-            //System.out.println(infoTable);
             System.out.println(brokerSocketIn.readObject());
             brokerSocketIn.close();
             brokerSocketOut.close();

@@ -111,7 +111,6 @@ public class AppNode extends Node {
         HashMap<String, ArrayList<File>> userVideosByHashtag = getChannel().getUserVideosByHashtag();
         for (String hashtag :hashtagsAssociated){
             if(userVideosByHashtag.containsKey(hashtag)) {
-                System.out.println(hashtag + " " + userVideosByHashtag.get(hashtag));
                 ArrayList<File> hashtagsFile = userVideosByHashtag.get(hashtag);
                 hashtagsFile.remove(video);
                 if (hashtagsFile.isEmpty()){
@@ -121,16 +120,12 @@ public class AppNode extends Node {
         }
         getChannel().getAllHashtagsPublished().clear();
         getChannel().getAllHashtagsPublished().addAll(userVideosByHashtag.keySet());
-        System.out.println(getChannel().getUserVideosByHashtag());
     }
 
     public synchronized ArrayList<String> updateOnSubscriptions(){
         ArrayList<String> updatedTopics = new ArrayList<>();
-        //System.out.println("Checking for updates");
-        //System.out.println(subscribedTopics);
         for (String topic: subscribedTopics.keySet()){
             ArrayList<File> availableVideos = new ArrayList<>(infoTable.getAllVideosByTopic().get(topic));
-            //System.out.println(availableVideos);
             if (getChannel().getAllHashtagsPublished().contains(topic)){
                 availableVideos.removeAll(getChannel().getUserVideosByHashtag().get(topic));
             }
@@ -145,8 +140,6 @@ public class AppNode extends Node {
     public void readDirectory() {
         File[] videoFiles = new File(userDirectory + "mp4").listFiles();
         File[] hashtags = new File(userDirectory + "hashtags").listFiles();
-        System.out.println(videoFiles);
-        System.out.println(hashtags);
         setChannelMaps(videoFiles, hashtags);
     }
 
@@ -171,9 +164,6 @@ public class AppNode extends Node {
             }
             userVideosByHashtag.put(hashtagPublished, videosForThisHashtag);
         }
-        //System.out.println(userHashtagsPerVideo);
-        //System.out.println(allHashtagsPublished);
-        //System.out.println(userVideosByHashtag);
         channel.setUserHashtagsPerVideo(userHashtagsPerVideo);
         channel.setAllHashtagsPublished(allHashtagsPublished);
         channel.setUserVideosByHashtag(userVideosByHashtag);
@@ -192,7 +182,6 @@ public class AppNode extends Node {
                 if (!allHashtagsPublished.contains(hashtagRead)) {
                     allHashtagsPublished.add(hashtagRead.toLowerCase());
                 }
-                //System.out.println(hashtag);
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();

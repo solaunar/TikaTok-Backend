@@ -35,7 +35,6 @@ public class ZookeeperActionsForBrokers extends Thread {
         System.out.println("[Zookeeper]: Connection is made with broker at port: " + connection.getPort());
         try {
             int requestCode = in.readInt();
-            //System.out.println(requestCode);
             if (requestCode == UPDATE_ON_DELETE) {
                 System.out.println("[Zookeeper]: Received request for video deletion.");
                 AppNode appNode = (AppNode) in.readObject();
@@ -97,7 +96,6 @@ public class ZookeeperActionsForBrokers extends Thread {
             }
             allVideosByTopic.remove(topicToBeDeleted);
         }
-        System.out.println(allVideosByTopic);
         System.out.println("[Zookeeper]: Updated InfoTable.");
         System.out.println(zookeeper.getInfoTable());
         out.writeObject(zookeeper.getInfoTable());
@@ -162,12 +160,9 @@ public class ZookeeperActionsForBrokers extends Thread {
                     }
                     allVideosByTopic.put(newTopic, filesAssociated);
                 } else {
-                    System.out.println(userVideosByHashtag);
                     ArrayList<File> filesAssociated = allVideosByTopic.get(newTopic);
                     if (newTopic.startsWith("#")) {
-                        System.out.println(newTopic);
                         ArrayList<File> filesOfPublisherHashtag = userVideosByHashtag.get(newTopic);
-                        System.out.println(filesOfPublisherHashtag);
                         for (File filePub : filesOfPublisherHashtag) {
                             if (!filesAssociated.contains(filePub))
                                 filesAssociated.add(filePub);
@@ -182,7 +177,6 @@ public class ZookeeperActionsForBrokers extends Thread {
                 }
             }
         }
-        System.out.println(allVideosByTopic);
         System.out.println("[Zookeeper]: Updated InfoTable.");
         System.out.println(zookeeper.getInfoTable());
         out.writeObject(zookeeper.getInfoTable());

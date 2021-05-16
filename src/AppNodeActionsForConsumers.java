@@ -97,7 +97,6 @@ public class AppNodeActionsForConsumers extends Thread {
                         continue;
                     }
                     System.out.println("[AppNode]: Connecting you to the proper broker.");
-                    //System.out.println(brokerAddress);
                     out.writeObject("RC");
                     out.flush();
                     out.writeObject(brokerAddress);
@@ -119,10 +118,8 @@ public class AppNodeActionsForConsumers extends Thread {
 
                     ArrayList<File> videoList;
                     videoList = new ArrayList<>(appNode.getInfoTable().getAllVideosByTopic().get(input));
-                    System.out.println(videoList);
                     if (appNode.getChannel().getAllHashtagsPublished().contains(input))
                         videoList.removeAll(appNode.getChannel().getUserVideosByHashtag().get(input));
-                    System.out.println(videoList);
                     printVideoList(input, videoList);
                     if (videoList.isEmpty()) {
                         System.out.println("Hashtag existed but you are the only one that has posted a video with that tag.");
@@ -201,7 +198,6 @@ public class AppNodeActionsForConsumers extends Thread {
                         continue;
                     }
                     System.out.println("[AppNode]: Connecting you to the proper broker.");
-                    //System.out.println(brokerAddress);
                     out.writeObject("RC");
                     out.flush();
                     out.writeObject(brokerAddress);
@@ -218,7 +214,6 @@ public class AppNodeActionsForConsumers extends Thread {
                         appNodeRequestSocket = new Socket(brokerAddress.getIp(), brokerAddress.getPort());
                         connection(appNodeRequestSocket);
                     } else {
-                        //System.out.println("[Consumer]: Sending info table request to Broker.");
                         out.writeObject("INFO");
                         out.flush();
                         System.out.println(in.readObject());
@@ -236,15 +231,12 @@ public class AppNodeActionsForConsumers extends Thread {
                         subscribedVideos.removeAll(appNode.getChannel().getUserVideosByHashtag().get(input));
                     }
                     appNode.getSubscribedTopics().put(input, subscribedVideos);
-                    //System.out.println(appNode.getSubscribedTopics());
                     appNode.setSubscribed(true);
 
                     ArrayList<File> videoList;
                     videoList = new ArrayList<>(appNode.getInfoTable().getAllVideosByTopic().get(input));
-                    System.out.println(videoList);
                     if (appNode.getChannel().getAllHashtagsPublished().contains(input))
                         videoList.removeAll(appNode.getChannel().getUserVideosByHashtag().get(input));
-                    System.out.println(videoList);
                     printVideoList(input, videoList);
                     if (videoList.isEmpty()) {
                         System.out.println("Hashtag existed but you are the only one that has posted a video with that tag.");
@@ -295,80 +287,50 @@ public class AppNodeActionsForConsumers extends Thread {
                         System.out.println("[Publisher]: Notifying brokers of new content.");
                         out.writeObject(appNode);
                         out.flush();
-                        System.out.println(appNode.getChannel().getAllHashtagsPublished());
                         ArrayList<String> tempAllHashtagsPublished = new ArrayList<>();
                         tempAllHashtagsPublished.addAll(appNode.getChannel().getAllHashtagsPublished());
-                        System.out.println(tempAllHashtagsPublished);
                         out.writeObject(tempAllHashtagsPublished);
                         out.flush();
-                        System.out.println(appNode.getChannel().getAllVideosPublished());
                         ArrayList<File> tempAllVideosPublished = new ArrayList<>();
                         tempAllVideosPublished.addAll(appNode.getChannel().getAllVideosPublished());
-                        System.out.println(tempAllVideosPublished);
                         out.writeObject(tempAllVideosPublished);
                         out.flush();
-                        System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
-                        HashMap<String, ArrayList<File>> tempUserVideosByHashtag = updateUserVideosByHashtag();//new HashMap<>();
-                        //tempUserVideosByHashtag.putAll(appNode.getChannel().getUserVideosByHashtag());
-                        //System.out.println(tempUserVideosByHashtag);
+                        HashMap<String, ArrayList<File>> tempUserVideosByHashtag = updateUserVideosByHashtag();
                         out.writeObject(tempUserVideosByHashtag);
                         out.flush();
-                        System.out.println(appNode.isPublisher());
                         boolean isPublisher = appNode.isPublisher();
-                        System.out.println(isPublisher);
                         out.writeBoolean(isPublisher);
                         out.flush();
-                        System.out.println(in.readObject());
                         System.out.println("[Consumer]: Sending info table request to Broker.");
                         out.writeObject("INFO");
                         out.flush();
                         in.readObject();
-                        //System.out.println();
                         appNode.setInfoTable((InfoTable) in.readObject());
-                        /*System.out.println(appNode.getChannel().getAllHashtagsPublished());
-                        System.out.println(appNode.getChannel().getAllVideosPublished());
-                        System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
-                        System.out.println(appNode.getChannel().getUserVideosByHashtag());*/
                     } else {
                         appNode.setPublisher(true);
                         uploadVideoRequest();
                         System.out.println("[Publisher]: Notifying brokers of new content.");
                         out.writeObject(appNode);
                         out.flush();
-                        System.out.println(appNode.getChannel().getAllHashtagsPublished());
                         ArrayList<String> tempAllHashtagsPublished = new ArrayList<>();
                         tempAllHashtagsPublished.addAll(appNode.getChannel().getAllHashtagsPublished());
-                        System.out.println(tempAllHashtagsPublished);
                         out.writeObject(tempAllHashtagsPublished);
                         out.flush();
-                        System.out.println(appNode.getChannel().getAllVideosPublished());
                         ArrayList<File> tempAllVideosPublished = new ArrayList<>();
                         tempAllVideosPublished.addAll(appNode.getChannel().getAllVideosPublished());
-                        System.out.println(tempAllVideosPublished);
                         out.writeObject(tempAllVideosPublished);
                         out.flush();
-                        System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
-                        HashMap<String, ArrayList<File>> tempUserVideosByHashtag = updateUserVideosByHashtag();//new HashMap<>();
-                        //tempUserVideosByHashtag.putAll(appNode.getChannel().getUserVideosByHashtag());
-                        //System.out.println(tempUserVideosByHashtag);
+                        HashMap<String, ArrayList<File>> tempUserVideosByHashtag = updateUserVideosByHashtag();
                         out.writeObject(tempUserVideosByHashtag);
                         out.flush();
-                        System.out.println(appNode.isPublisher());
                         boolean isPublisher = appNode.isPublisher();
-                        System.out.println(isPublisher);
                         out.writeBoolean(isPublisher);
                         out.flush();
-                        System.out.println(in.readObject());
                         System.out.println("[Consumer]: Sending info table request to Broker.");
                         out.writeObject("INFO");
                         out.flush();
                         in.readObject();
-                        //System.out.println();
                         appNode.setInfoTable((InfoTable) in.readObject());
-                        /*System.out.println(appNode.getChannel().getAllHashtagsPublished());
-                        System.out.println(appNode.getChannel().getAllVideosPublished());
-                        System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
-                        System.out.println(appNode.getChannel().getUserVideosByHashtag());*/
                         Thread appNodeServer = new Thread(new Runnable() {
                             @Override
                             public void run() {
@@ -389,21 +351,14 @@ public class AppNodeActionsForConsumers extends Thread {
                         out.flush();
                         ArrayList<String> tempAllHashtagsPublished = new ArrayList<>();
                         tempAllHashtagsPublished.addAll(appNode.getChannel().getAllHashtagsPublished());
-                        System.out.println(tempAllHashtagsPublished);
                         out.writeObject(tempAllHashtagsPublished);
                         out.flush();
-                        System.out.println(appNode.getChannel().getAllHashtagsPublished());
                         System.out.println(in.readObject());
                         System.out.println("[Consumer]: Sending info table request to Broker.");
                         out.writeObject("INFO");
                         out.flush();
                         in.readObject();
-                        //System.out.println();
                         appNode.setInfoTable((InfoTable) in.readObject());
-                        /*System.out.println(appNode.getChannel().getAllHashtagsPublished());
-                        System.out.println(appNode.getChannel().getAllVideosPublished());
-                        System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
-                        System.out.println(appNode.getChannel().getUserVideosByHashtag());*/
                     } else {
                         System.out.println("[Publisher]: User is not registered as publisher, which means he doesn't have videos to delete.");
                         continue;
@@ -420,7 +375,6 @@ public class AppNodeActionsForConsumers extends Thread {
                     break;
                 }
             }
-            //System.out.println(appNode.getInfoTable());
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         } finally {
@@ -438,15 +392,13 @@ public class AppNodeActionsForConsumers extends Thread {
         out.writeObject("INFO");
         out.flush();
         in.readObject();
-        //System.out.println();
         appNode.setInfoTable((InfoTable) in.readObject());
-        //System.out.println(appNode.getInfoTable());
     }
 
     public File selectPublishedVideos() {
         System.out.println("LIST OF PUBLISHED VIDEOS.");
         HashMap<File, ArrayList<String>> userHashtagsPerVideo = appNode.getChannel().getUserHashtagsPerVideo();
-        int index = 0;//userHashtagsPerVideo.size() - 1;
+        int index = 0;
         for (File videoPublished : userHashtagsPerVideo.keySet()) {
             String videoTitle = videoPublished.getPath();
             videoTitle = videoTitle.substring(videoTitle.lastIndexOf('\\') + 1, videoTitle.indexOf(".mp4"));
@@ -462,9 +414,6 @@ public class AppNodeActionsForConsumers extends Thread {
             System.out.println("This is not a number off the list.");
             choice = appNode.getAppNodeInput().nextInt();
         }
-        for (int i = 0; i < appNode.getChannel().getAllVideosPublished().size(); i++)
-            System.out.println(i + " " + appNode.getChannel().getAllVideosPublished().get(i).getPath());
-        System.out.println(appNode.getChannel().getAllVideosPublished().get(choice));
         File toBeDeleted = appNode.getChannel().getAllVideosPublished().get(choice);
         appNode.deleteVideo(toBeDeleted);
         return toBeDeleted;
@@ -509,27 +458,19 @@ public class AppNodeActionsForConsumers extends Thread {
         System.out.println("[AppNode]: Notifying brokers of existence.");
         out.writeObject(appNode);
         out.flush();
-        System.out.println(appNode.getChannel().getAllHashtagsPublished());
         ArrayList<String> tempAllHashtagsPublished = new ArrayList<>();
         tempAllHashtagsPublished.addAll(appNode.getChannel().getAllHashtagsPublished());
-        System.out.println(tempAllHashtagsPublished);
         out.writeObject(tempAllHashtagsPublished);
         out.flush();
-        System.out.println(appNode.getChannel().getAllVideosPublished());
         ArrayList<File> tempAllVideosPublished = new ArrayList<>();
         tempAllVideosPublished.addAll(appNode.getChannel().getAllVideosPublished());
-        System.out.println(tempAllVideosPublished);
         out.writeObject(tempAllVideosPublished);
         out.flush();
-        System.out.println(appNode.getChannel().getUserHashtagsPerVideo());
         HashMap<String, ArrayList<File>> tempUserVideosByHashtag = new HashMap<>();
         tempUserVideosByHashtag.putAll(appNode.getChannel().getUserVideosByHashtag());
-        System.out.println(tempUserVideosByHashtag);
         out.writeObject(tempUserVideosByHashtag);
         out.flush();
-        System.out.println(appNode.isPublisher());
         boolean isPublisher = appNode.isPublisher();
-        System.out.println(isPublisher);
         out.writeBoolean(isPublisher);
         out.flush();
         System.out.println(in.readObject());
@@ -622,7 +563,11 @@ public class AppNodeActionsForConsumers extends Thread {
                 }
                 String videoTitle = videoFile.getPath();
                 videoTitle = videoTitle.substring(videoTitle.lastIndexOf('\\') + 1, videoTitle.indexOf(".mp4"));
-                String videoPath = "C:/Users/Konstantina/Desktop/downloaded/";
+                String videoPath = "dataset/downloadedFromSub/" + appNode.getChannel().getChannelName() + "/";
+                File theDir = new File(videoPath);
+                if (!theDir.exists()){
+                    theDir.mkdirs();
+                }
                 FileOutputStream fos = new FileOutputStream(videoPath + videoTitle+".mp4");
                 int i = 0;
                 for (VideoFile chunk : chunks) {

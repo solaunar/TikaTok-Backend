@@ -29,13 +29,9 @@ public class BrokerActionsForAppNodes extends Thread {
                 if (message instanceof AppNode) {
                     AppNode user = (AppNode) message;
                     ArrayList<String> allHashtagsPublished = (ArrayList<String>) in.readObject();
-                    System.out.println(allHashtagsPublished);
                     ArrayList<File> allVideosPublished = (ArrayList<File>) in.readObject();
-                    System.out.println(allVideosPublished);
                     HashMap<String, ArrayList<File>> userVideosByHashtag = (HashMap<String, ArrayList<File>>) in.readObject();
-                    System.out.println(userVideosByHashtag);
                     boolean isPublisher = in.readBoolean();
-                    System.out.println(isPublisher);
                     broker.updateInfoTable(user, allHashtagsPublished, allVideosPublished, userVideosByHashtag, isPublisher);
                     System.out.println("[Broker]: AppNode: " + user.getChannel().getChannelName() + " data retrieved.");
                     out.writeObject("[Broker(" + broker.getAddress() + " )]: AppNode data retrieved.");
@@ -112,13 +108,10 @@ public class BrokerActionsForAppNodes extends Thread {
                         AppNode userRegister = (AppNode) in.readObject();
                         String topic = (String) in.readObject();
                         registerConsumer(userRegister, topic);
-                        System.out.println(broker.getRegisteredConsumers());
                     } else if(command.equals("LIST_TOPIC")){
                         String topic = (String) in.readObject();
                         AppNode consumer = (AppNode) in.readObject();
                         ArrayList<File> videosToReturn = new ArrayList<>(broker.getInfoTable().getAllVideosByTopic().get(topic));
-                        System.out.println(videosToReturn);
-                        System.out.println(videosToReturn);
                         out.writeObject(videosToReturn.removeAll(consumer.getChannel().getUserVideosByHashtag().get(topic)));
                         out.flush();
                     } else if(command.equals("DELETE")){
