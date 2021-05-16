@@ -33,14 +33,6 @@ public class Broker extends Node{
         return address;
     }
 
-    public BigInteger getBrokerID() {
-        return brokerID;
-    }
-
-    public ArrayList<String> getTopicsAssociated() {
-        return topicsAssociated;
-    }
-
     public synchronized HashMap<AppNode, ArrayList<String>> getRegisteredConsumers() {
         return registeredConsumers;
     }
@@ -61,6 +53,12 @@ public class Broker extends Node{
         this.availablePublishers = availablePublishers;
     }
 
+    /**
+     * method setRegisteredPublishers updates the registeredPublishers list of the broker
+     *        based on the topics assigned to the broker and the availablePublishers topics lists.
+     *        If there is a match of at least one topic in the previously mentioned lists then
+     *        the related publisher will be registered to this broker.
+     */
     public synchronized void setRegisteredPublishers() {
         boolean nextPub = false;
         boolean pub_exists = false;
@@ -91,6 +89,11 @@ public class Broker extends Node{
         }
     }
 
+    /**
+     * method init connects the broker to the ZOOKEEPER class to notify the zookeeper of its existence
+     *             and update his brokerID and Address on the InfoTable using updateID
+     *             and opens the BrokerServer to accept AppNode requests
+     */
     public void init(){
         calculateBrokerID();
         Thread zookeeperThread = new Thread(new Runnable() {
@@ -104,6 +107,10 @@ public class Broker extends Node{
         openBrokerServer();
     }
 
+    /**
+     * method openBrokerServer creates new ServerSocket for the Broker to accept AppNode requests
+     *                         which will be handled by the BrokerActionsForAppNodes
+     */
     public void openBrokerServer(){
         try{
             brokerServerSocket = new ServerSocket(address.getPort(), Node.BACKLOG);
@@ -125,6 +132,9 @@ public class Broker extends Node{
         }
     }
 
+    /**
+     * method calculateBrokerID uses SHA-1 encoding to assign a BigInteger ID to this broker
+     */
     public void calculateBrokerID(){
         System.out.println("[Broker]: Calculating brokerID for self.");
         //Start of hashing of ip+port
@@ -143,6 +153,11 @@ public class Broker extends Node{
         brokerID = new BigInteger(digest);
     }
 
+
+    /**
+     * method updateID() makes a connection with the Zookeeper, in which case the broker requests to update its ID
+     *                   and address at the InfoTable
+     */
     public void updateID(){
         Socket brokerSocket = null;
         ObjectOutputStream brokerSocketOut = null;
@@ -174,6 +189,17 @@ public class Broker extends Node{
         }
     }
 
+    /**
+     * method updateInfoTable makes a connection with the Zookeeper, in which case the broker requests to update the
+     *                        InfoTable with content read from an AppNode (such as the hashTagsPublished of this
+     *                        AppNode - Publisher etc).
+     *                        Then it receives the UPDATED InfoTable obj from the Zookeeper.
+     * @param appNode AppNode obj
+     * @param allHashtagsPublished the hashtags published by this AppNode publisher
+     * @param allVideosPublished the videos published by this AppNode publisher
+     * @param userVideosByHashtag the videos by hashtag published by this AppNode publisher
+     * @param isPublisher boolean variable to check if the AppNode is a Publisher or not
+     */
     public void updateInfoTable(AppNode appNode, ArrayList<String> allHashtagsPublished, ArrayList<File> allVideosPublished, HashMap<String, ArrayList<File>> userVideosByHashtag, boolean isPublisher){
         Socket brokerSocket = null;
         ObjectOutputStream brokerSocketOut = null;
@@ -221,6 +247,15 @@ public class Broker extends Node{
         }
     }
 
+    /**
+     * method updateOnDelete used each time there is a delete request from the Publisher AppNode
+     *                       BROKER makes a connection with the Zookeeper, in this case the broker requests to update the
+     *                       InfoTable (delete every instance of the video to be deleted, as well as hashtags that were
+     *                       only associated with this video)
+     * @param appNode the Publisher AppNode obj that made the request
+     * @param toBeDeleted the video File obj that the AppNode requested deletion of
+     * @param allHashtagsPublished the list of the hashtagsPublished from the Publisher that made the request
+     */
     public void updateOnDelete(AppNode appNode, File toBeDeleted, ArrayList<String> allHashtagsPublished){
         Socket brokerSocket = null;
         ObjectOutputStream brokerSocketOut = null;

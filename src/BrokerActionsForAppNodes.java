@@ -156,13 +156,22 @@ public class BrokerActionsForAppNodes extends Thread {
         return true;
     }
 
+    /**
+     * method pull iterates through the registeredPublishers and finds the Publisher the broker should pull the requested
+     *             video from based on the videoFile parameter and the infoTable
+     *             then makes a connection with the Publisher and requests the videoFile which will be sent chunk by chunk
+     *             and the broker will receive chunk by chunk
+     * @param videoFile VideoFile obj that Consumer requested
+     * @param consumer AppNode obj Consumer to filter any videos out
+     */
     public void pull(VideoFile videoFile, AppNode consumer){
+        //starting with publisher port as 0 and IP as blank string
         int publisherServer = 0;
         String publisherIP ="";
         Socket brokerSocket;
         ObjectOutputStream brokerSocketOut;
         ObjectInputStream brokerSocketIn;
-        /**ITERATE HASHMAP NOT ARRAYLIST**/
+        //iterate though the registered publishers to find the one with the video
         for (AppNode user: broker.getRegisteredPublishers()){
             if (consumer.compare(user)) continue;
             ArrayList<File> allVideosPublished = broker.getInfoTable().getAllVideosByTopic().get(user.getChannel().getChannelName());
@@ -184,6 +193,7 @@ public class BrokerActionsForAppNodes extends Thread {
             }
             return;
         }
+        //publisher found so now the broker will connect to it and request the video file
         try {
             brokerSocket = new Socket(publisherIP, publisherServer);
             brokerSocketOut = new ObjectOutputStream(brokerSocket.getOutputStream());
@@ -194,19 +204,27 @@ public class BrokerActionsForAppNodes extends Thread {
             ArrayList<VideoFile> chunks = new ArrayList<>();
             VideoFile chunk;
             String response;
+            //while there are chunks
             while (true){
+                //read response from publisher
                 response = (String) brokerSocketIn.readObject();
                 System.out.println(">Publisher: "+response);
+                //if publisher has said that there are no more chunks stop the pull
                 if (response.equals("NO MORE CHUNKS")){
                     out.writeObject("NO MORE CHUNKS");
                     out.flush();
                     break;
                 }
+                //there are more chunks so read the next chunk the publisher sent
                 chunk = (VideoFile) brokerSocketIn.readObject();
+                //add chunk to arraylist of chunks
                 chunks.add(chunk);
+                //notify publisher that we got the chunk
                 brokerSocketOut.writeObject("RECEIVED");
+                //write the chunk to the Consumer that asked for it
                 out.writeObject(chunk);
                 out.flush();
+                //get consumer response that he received the chunk and continue the loop to get the next one
                 response = (String) in.readObject();
                 if (response.equals("RECEIVED")) continue;
             }

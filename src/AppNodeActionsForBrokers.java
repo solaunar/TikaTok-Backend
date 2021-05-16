@@ -29,6 +29,7 @@ public class AppNodeActionsForBrokers extends Thread {
 
     public void run(){
         try{
+            //if broker makes a request of type VideoFile then chunk the requested video file and push the chunks one by one to the broker
             Object request = in.readObject();
             if (request instanceof VideoFile){
                 System.out.println("Broker asked for a specific video file.");
@@ -49,7 +50,11 @@ public class AppNodeActionsForBrokers extends Thread {
         }
     }
 
-
+    /**
+     * method chunkVideo gets the file as a parameter and reads that file chunk by chunk, storing it in an ArrayList
+     * @param file File obj of video file requested
+     * @return ArrayList<VideoFile> the list of the chunks as VideoFile objects
+     */
     public ArrayList<VideoFile> chunkVideo(File file) {
         ArrayList<VideoFile> chunks = new ArrayList<>();
         File peepee = new File(file.getPath());
@@ -81,6 +86,11 @@ public class AppNodeActionsForBrokers extends Thread {
         return null;
     }
 
+    /**
+     * method push pushes (writes) one chunk on the broker that asked for it
+     * @param chunk VideoFile obj that represents a chunk of the video requested
+     * @throws IOException
+     */
     public void push(VideoFile chunk) throws IOException {
         out.writeObject("SENDING CHUNK");
         out.flush();

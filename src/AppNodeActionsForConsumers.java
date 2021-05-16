@@ -4,10 +4,14 @@ import java.io.*;
 import java.net.Socket;
 import java.util.*;
 
+/**
+ * AppNodeActionsForConsumers class extends Thread since it runs the Consumer side of the AppNode obj
+ * all of the user interactions/ requests are handled here
+ */
 public class AppNodeActionsForConsumers extends Thread {
+    //codes to handle the user requests by input
     private final int TOPIC_SEARCH = 1;
     private final int SUBSCRIBE_TOPIC = 2;
-    private final int REFRESH_SUBSCRIPTIONS = 3;
     private final int POST_VIDEO = 4;
     private final int DELETE_VIDEO = 5;
     private final int EXIT = 6;
@@ -16,7 +20,6 @@ public class AppNodeActionsForConsumers extends Thread {
     ObjectInputStream in;
     AppNode appNode;
     boolean threadUpdateSub = false;
-    Scanner subInput = new Scanner(System.in);
     public AppNodeActionsForConsumers(AppNode appNode) {
         this.appNode = appNode;
     }
@@ -24,29 +27,39 @@ public class AppNodeActionsForConsumers extends Thread {
     @Override
     public void run() {
         try {
+            //Connecting the user to a random broker
             System.out.println("[Consumer]: Connecting to a random Broker.");
             Random random = new Random();
             int randomBrokerIndex = random.ints(0, Node.BROKER_ADDRESSES.size()).findFirst().getAsInt();
             Address randomBroker = Node.BROKER_ADDRESSES.get(randomBrokerIndex);
-            //Address randomBroker = Node.BROKER_ADDRESSES.get(0);
             appNodeRequestSocket = new Socket(randomBroker.getIp(), randomBroker.getPort());
             connection(appNodeRequestSocket);
+
+            //initialize a thread to null, this thread will be used only if the user subscribes to any topics
             Thread updateSub = null;
             while (true) {
                 if(appNode.isSubscribed() && !threadUpdateSub){
+                    //since the user is subscribed to a topic we create the previously mentioned thread and
+                    //ask for an updated InfoTable every 3 seconds (to check if there's any new content related to
+                    //the subscribed topics
                     updateSub = new Thread(new Runnable() {
                         @Override
                         public void run() {
                             try {
                                 while (true) {
+                                    //ask for the updated info table
                                     updateInfoTable();
+                                    //get the topics in which there has been an update
                                     ArrayList<String> topicsUpdated = appNode.updateOnSubscriptions();
                                     if (!topicsUpdated.isEmpty()) {
+                                        //if there are indeed topics with updated content then for each one
+                                        //print the list of videos
                                         HashMap<String, ArrayList<File>> updatedSubscriptions = appNode.getSubscribedTopics();
                                         System.out.println("Saving the list of videos of topics you are subscribed to...");
                                         for (String topic: topicsUpdated){
                                             printVideoList(topic, updatedSubscriptions.get(topic));
                                         }
+                                        //then save all the videos of subscribed topics to the Consumer's/ subscriber's device
                                         saveAllSubscribedVideos(updatedSubscriptions);
                                     }
                                     sleep(3000);
@@ -59,15 +72,20 @@ public class AppNodeActionsForConsumers extends Thread {
                     updateSub.start();
                     threadUpdateSub = true;
                 }
+                //ask user what do they want to do
                 System.out.println("Please select what you'd like to do: ");
                 System.out.println("1. Search for a topic (channel or hashtag) as a [Consumer].");
                 System.out.println("2. Subscribe to a topic (channel or hashtag) as a [Consumer].");
-                System.out.println("3. Refresh for updated content as a [Consumer].");
+                System.out.println("3. This does nothing, please chose one of the other options, thank you.");
                 System.out.println("4. Post a video as a [Publisher].");
                 System.out.println("5. Delete a video as a [Publisher].");
                 System.out.println("6. Exit app as a [Consumer].");
                 int option = appNode.getAppNodeInput().nextInt();
                 String input = "";
+                //user chose to check out videos of a certain topic without subscribing to it
+                //the video list of the videos related will be printed
+                //the user then will have to chose one video of the ones on the list to watch
+                //the video will be then downloaded in the users device
                 if (option == TOPIC_SEARCH) {
                     updateInfoTable();
                     System.out.println("Please type the topic (channel or hashtag) you want to look up...");
@@ -160,7 +178,15 @@ public class AppNodeActionsForConsumers extends Thread {
                     }
                     fos.close();
                     continue;
-                } else if (option == SUBSCRIBE_TOPIC) {
+                }
+                //the user chose to subscribe to a topic,
+                //if this is the first time they subscribe to this topic the list of ALL of the currently
+                //available videos will be printed and same as in the search by topic option the user will have to pick
+                //a video to watch/ download as well as update the broker (then infotable via the broker) that they are now
+                //subscribed to the chosen topic
+                //if they have been already subscribed to the chosen topic a message will pop up saying that they are already subscribed there
+                //likewise they won't be able to subscribe to their own channels (topic usern/channelname)
+                else if (option == SUBSCRIBE_TOPIC) {
                     updateInfoTable();
                     System.out.println("Please type the topic (channel or hashtag) you want to subscribe to...");
                     System.out.println("If you want to subscribe to a hashtag, please add '#' in front of the word.");
@@ -276,11 +302,15 @@ public class AppNodeActionsForConsumers extends Thread {
                         fos.write(chunk.getData());
                     }
                     fos.close();
-
                     continue;
-                } else if (option == REFRESH_SUBSCRIPTIONS) {
-                    System.out.println("[Consumer]: Got available video list of subscriptions.");
-                } else if (option == POST_VIDEO) {
+                }
+                //user has chosen to upload a video
+                //if the video has already been uploaded there will be displayed a message about it
+                //if the video is a new one then the Channels data structures are updated by using the updateVideoRequest() method
+                //if the AppNode was already a Publisher then there won't be any need to reopen the AppNode publisher server
+                //if he wasn't a Publisher before this upload then a new thread will start running so that the AppNode
+                //can accept broker video pull requests as a server
+                else if (option == POST_VIDEO) {
                     if (appNode.isPublisher()) {
                         System.out.println("[Publisher]: User already registered as publisher.");
                         uploadVideoRequest();
@@ -341,7 +371,11 @@ public class AppNodeActionsForConsumers extends Thread {
                         });
                         appNodeServer.start();
                     }
-                } else if (option == DELETE_VIDEO) {
+                }
+                //user has chosen to delete a video
+                //the list of his published videos is printed so that he can chose which one he wants to delete
+                //then the broker is notified of this action so that he can update the infotable
+                else if (option == DELETE_VIDEO) {
                     if (appNode.isPublisher()) {
                         File toBeDeleted = selectPublishedVideos();
                         out.writeObject("DELETE");
@@ -390,6 +424,11 @@ public class AppNodeActionsForConsumers extends Thread {
         }
     }
 
+    /**
+     * method updateInfoTable sends the broker a request for an updated version of the infoTable
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public void updateInfoTable() throws IOException, ClassNotFoundException {
         out.writeObject("INFO");
         out.flush();
@@ -454,6 +493,15 @@ public class AppNodeActionsForConsumers extends Thread {
         appNode.uploadVideo(directory, hashtags);
     }
 
+    /**
+     * method connection created streams from the Socket streams
+     *                   notifies broker of the AppNode existance and connection
+     *                   and asks for InfoTable
+     *                   method is used in every new connection made with broker (that includes redirections)
+     * @param appNodeRequestSocket Socket of established connection with broker
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public void connection(Socket appNodeRequestSocket) throws IOException, ClassNotFoundException {
         out = new ObjectOutputStream(appNodeRequestSocket.getOutputStream());
         in = new ObjectInputStream(appNodeRequestSocket.getInputStream());
@@ -483,6 +531,11 @@ public class AppNodeActionsForConsumers extends Thread {
         appNode.setInfoTable((InfoTable) in.readObject());
     }
 
+    /**
+     * method find iterates through the infotable data structure to check if topic exists and returns an Address obj
+     * @param topic String topic that user asked to search or subscribe to
+     * @return Address obj if the topic does exist it will be one of the broker addresses, if not then null is returned
+     */
     public Address find(String topic) {
         HashMap<Address, ArrayList<String>> topicsAssociatedWithBrokers = appNode.getInfoTable().getTopicsAssociatedWithBrokers();
         Iterator it = topicsAssociatedWithBrokers.entrySet().iterator();
@@ -519,6 +572,12 @@ public class AppNodeActionsForConsumers extends Thread {
         return newUserVideosByHashtag;
     }
 
+    /**
+     * method saveAllSubscribedVideos requests a videoFile from broker (which will pull from publisher) for each of the updated video files
+     * @param updatedSubscriptions HashMap of the topics with their associated videos
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public void saveAllSubscribedVideos(HashMap<String, ArrayList<File>> updatedSubscriptions) throws IOException, ClassNotFoundException {
 
         for (String topic : updatedSubscriptions.keySet()){
