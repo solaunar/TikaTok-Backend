@@ -176,6 +176,12 @@ public class BrokerActionsForAppNodes extends Thread {
         }
         if(publisherServer==0 || publisherIP.equals("")){
             System.out.println("This video does not exist.");
+            try {
+                out.writeObject("NO MORE CHUNKS");
+                out.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             return;
         }
         try {

@@ -131,16 +131,18 @@ public class ZookeeperActionsForBrokers extends Thread {
         HashMap<Address, BigInteger> hashingIDAssociatedWithBrokers = zookeeper.getInfoTable().getHashingIDAssociatedWithBrokers();
         HashMap<Address, ArrayList<String>> topicsAssociatedWithBrokers = zookeeper.getInfoTable().getTopicsAssociatedWithBrokers();
         HashMap<String, ArrayList<File>> allVideosByTopic = zookeeper.getInfoTable().getAllVideosByTopic();
+        HashMap<AppNode, ArrayList<String>> allAvailablePublishers = zookeeper.getInfoTable().getAvailablePublishers();
         out.writeObject("[Zookeeper]: Updating info table...");
         out.flush();
         if (appNode != null && isPublisher) {
             allHashtagsPublished.add(appNode.getChannel().getChannelName());
-            if (!checkPublisherExistence(appNode) && zookeeper.getInfoTable().getAvailablePublishers() != null) {
-                zookeeper.getInfoTable().getAvailablePublishers().put(appNode, allHashtagsPublished);
+            AppNode existsAppNode = checkPublisherExistence(appNode);
+            if ( existsAppNode == null && allAvailablePublishers != null) {
+                allAvailablePublishers.put(appNode, allHashtagsPublished);
             } else {
-                zookeeper.getInfoTable().getAvailablePublishers().replace(appNode, allHashtagsPublished);
+                allAvailablePublishers.remove(existsAppNode);
+                allAvailablePublishers.put(existsAppNode, allHashtagsPublished);
             }
-
             ArrayList<String> allAvailableTopics = zookeeper.getInfoTable().getAvailableTopics();
             for (String newTopic : allHashtagsPublished) {
                 if (!allAvailableTopics.contains(newTopic))
@@ -186,12 +188,12 @@ public class ZookeeperActionsForBrokers extends Thread {
         System.out.println("[Zookeeper]: Sent updated InfoTable to broker." + broker);
     }
 
-    public boolean checkPublisherExistence(AppNode publisher) {
+    public AppNode checkPublisherExistence(AppNode publisher) {
         for (AppNode availablePublisher : zookeeper.getInfoTable().getAvailablePublishers().keySet()) {
             if (availablePublisher.compare(publisher))
-                return true;
+                return availablePublisher;
         }
-        return false;
+        return null;
     }
 
     public boolean checkBrokerExistence(Address broker, HashMap<Address, ArrayList<String>> topicsAssociatedWithBrokers, HashMap<Address, BigInteger> hashingIDAssociatedWithBrokers) {

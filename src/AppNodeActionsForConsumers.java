@@ -49,7 +49,7 @@ public class AppNodeActionsForConsumers extends Thread {
                                         }
                                         saveAllSubscribedVideos(updatedSubscriptions);
                                     }
-                                    sleep(1000);
+                                    sleep(3000);
                                 }
                             } catch (IOException | ClassNotFoundException | InterruptedException e) {
                                 e.printStackTrace();
@@ -301,6 +301,7 @@ public class AppNodeActionsForConsumers extends Thread {
                         boolean isPublisher = appNode.isPublisher();
                         out.writeBoolean(isPublisher);
                         out.flush();
+                        System.out.println(in.readObject());
                         System.out.println("[Consumer]: Sending info table request to Broker.");
                         out.writeObject("INFO");
                         out.flush();
@@ -326,6 +327,7 @@ public class AppNodeActionsForConsumers extends Thread {
                         boolean isPublisher = appNode.isPublisher();
                         out.writeBoolean(isPublisher);
                         out.flush();
+                        System.out.println(in.readObject());
                         System.out.println("[Consumer]: Sending info table request to Broker.");
                         out.writeObject("INFO");
                         out.flush();
@@ -544,6 +546,11 @@ public class AppNodeActionsForConsumers extends Thread {
                 appNode.setInfoTable((InfoTable) in.readObject());
             }
             for (File videoFile : updatedSubscriptions.get(topic)){
+                System.out.println(videoFile);
+                if (appNode.getChannel().getAllVideosPublished().contains(videoFile)) {
+                    System.out.println("Found my file");
+                    continue;
+                }
                 VideoFile video = new VideoFile(videoFile);
                 out.writeObject(video);
                 out.flush();

@@ -63,17 +63,30 @@ public class Broker extends Node{
 
     public synchronized void setRegisteredPublishers() {
         boolean nextPub = false;
+        boolean pub_exists = false;
         for(AppNode publisher : availablePublishers.keySet()){
             for (String topicPublisher : availablePublishers.get(publisher)){
+                System.out.println("This is my publisher topic:" + topicPublisher);
                 for (String associatedTopic : topicsAssociated){
+                    System.out.println("Broker topic: " + associatedTopic);
                     if (topicPublisher.equals(associatedTopic)) {
-                        if (!registeredPublishers.contains(publisher))
+                        for (AppNode registeredPublisher: registeredPublishers){
+                            if(registeredPublisher.compare(publisher)){
+                                pub_exists = true;
+                            }
+                        }
+                        if(!pub_exists){
                             registeredPublishers.add(publisher);
+                            pub_exists = false;
+                        }
                         nextPub = true;
                         break;
                     }
                 }
-                if(nextPub) break;
+                if(nextPub){
+                    nextPub = false;
+                    break;
+                }
             }
         }
     }
