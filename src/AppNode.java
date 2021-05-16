@@ -126,7 +126,7 @@ public class AppNode extends Node {
 
     public synchronized ArrayList<String> updateOnSubscriptions(){
         ArrayList<String> updatedTopics = new ArrayList<>();
-        System.out.println("Checking for updates");
+        //System.out.println("Checking for updates");
         //System.out.println(subscribedTopics);
         for (String topic: subscribedTopics.keySet()){
             ArrayList<File> availableVideos = new ArrayList<>(infoTable.getAllVideosByTopic().get(topic));

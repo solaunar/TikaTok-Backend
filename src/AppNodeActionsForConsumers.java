@@ -49,7 +49,7 @@ public class AppNodeActionsForConsumers extends Thread {
                                         }
                                         saveAllSubscribedVideos(updatedSubscriptions);
                                     }
-                                    sleep(10000);
+                                    sleep(1000);
                                 }
                             } catch (IOException | ClassNotFoundException | InterruptedException e) {
                                 e.printStackTrace();
@@ -181,7 +181,7 @@ public class AppNodeActionsForConsumers extends Thread {
                                     System.out.println("You can't subscribe to your own videos.");
                                     continue;
                                 }
-                                if(!appNode.getSubscribedTopics().containsKey(input)){
+                                if(appNode.getSubscribedTopics().containsKey(input)){
                                     System.out.println("You are already subscribed to this topic.");
                                     continue;
                                 }
@@ -622,7 +622,7 @@ public class AppNodeActionsForConsumers extends Thread {
                 }
                 String videoTitle = videoFile.getPath();
                 videoTitle = videoTitle.substring(videoTitle.lastIndexOf('\\') + 1, videoTitle.indexOf(".mp4"));
-                String videoPath = "C:/Users/Anna/Desktop/videosub/";
+                String videoPath = "C:/Users/Konstantina/Desktop/downloaded/";
                 FileOutputStream fos = new FileOutputStream(videoPath + videoTitle+".mp4");
                 int i = 0;
                 for (VideoFile chunk : chunks) {
