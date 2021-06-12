@@ -3,7 +3,7 @@ Distributed application project for the couse of Distributed Systems at AUEB. <b
 Objective of this project was to implement a video streaming/ upload service based on the publisher/ subscriber model. <br>
 Users can search for topics (channels, hashtags), subscribe to topics, stream (for now download locally) videos of other users and upload/ delete their own videos. 
 
-### Built With
+### Built With <a name="built"></a>
 * [Java 1.16](https://docs.oracle.com/en/java/javase/16/docs/api/index.html)
 * [Apache Tika 1.26](https://www.apache.org/dyn/closer.cgi/tika/1.26/tika-app-1.26.jar)
 
@@ -41,7 +41,7 @@ The important data we mentioned could be:
 ## Usage
 ### Requirements
    * Any Java distribution over 6.
-   * Apache Tika library (link above).
+   * Apache Tika library ([link above](#built)).
 
 ### Directions
 1. Clone the project to IntelliJ IDEA.
